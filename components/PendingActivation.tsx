@@ -4,8 +4,10 @@
  */
 export function PendingActivation({ displayName }: { displayName: string }) {
   return (
-    <div className="pending-screen">
-      <div className="status-line">Pending activation</div>
+    <div className="pending-screen fade-1">
+      <div className="status-line">
+        <span className="status-pill pending">Pending activation</span>
+      </div>
       <h1>Your account awaits activation</h1>
       <p>
         Welcome, {displayName}. Your sign-in was successful, but your account

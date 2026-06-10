@@ -23,14 +23,18 @@ export function RedemptionDialog({
   denomination,
   unitsAvailable,
   navPerUnit,
+  initiallyOpen = false,
 }: {
   cell: string;
   shareClass: string;
   denomination: Denomination;
   unitsAvailable: string;
   navPerUnit: string;
+  /** PREVIEW-ONLY: pages pass true (gated on PORTAL_PREVIEW + ?dialog=1)
+   *  so the screenshot loop can capture the open state. */
+  initiallyOpen?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(initiallyOpen);
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [units, setUnits] = useState("");
   const [note, setNote] = useState("");

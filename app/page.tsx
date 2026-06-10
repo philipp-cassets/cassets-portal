@@ -7,31 +7,44 @@ import {
   type CellStatsRow,
 } from "@/lib/data";
 import { PendingActivation } from "@/components/PendingActivation";
-import { SectionHead } from "@/components/SectionHead";
-import { Sparkline } from "@/components/Sparkline";
+import { BarcodeChart } from "@/components/BarcodeChart";
+import { isPreview } from "@/lib/preview";
 import { RedemptionDialog } from "@/components/RedemptionDialog";
 import { fmtNav, fmtUnits, fmtDate } from "@/lib/format";
 import type { Denomination } from "@/lib/format";
 
-/** Hero figure: oversized ultra-light tabular numerals, denomination-correct.
- *  NEAR amounts are "1,234,567 NEAR" (never $); USD is "$1,234,567". */
+/** .denom-usd / .denom-near tags let the portal toggle foreground the
+ *  active denomination; the inactive one sits at ghost opacity. Nothing
+ *  is ever converted. */
+const denomClass = (d: Denomination) => (d === "NEAR" ? "denom-near" : "denom-usd");
+
+/** Hero figure: oversized tabular numerals with ghosted decimals,
+ *  denomination-correct. NEAR amounts are "1,234,567 NEAR" (never $);
+ *  USD is "$1,234,567" with the decimals as a ghost span. */
 function HeroValue({ value, denomination }: { value: string; denomination: Denomination }) {
   const n = Number(value);
-  const grouped = Number.isFinite(n)
-    ? n.toLocaleString("en-US", { maximumFractionDigits: 0 })
-    : value;
+  if (!Number.isFinite(n)) {
+    return <div className={`kpi-value ${denomClass(denomination)}`}>{value}</div>;
+  }
+  const s = n.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  const [int, dec] = s.split(".");
   if (denomination === "NEAR") {
     return (
-      <div className="hero-value">
-        {grouped}
+      <div className={`kpi-value ${denomClass(denomination)}`}>
+        {int}
+        <span className="dec">.{dec}</span>
         <span className="unit">NEAR</span>
       </div>
     );
   }
   return (
-    <div className="hero-value">
+    <div className={`kpi-value ${denomClass(denomination)}`}>
       <span className="cur">$</span>
-      {grouped}
+      {int}
+      <span className="dec">.{dec}</span>
     </div>
   );
 }
@@ -46,12 +59,22 @@ function sinceInception(hist: NavRow[]): { text: string; positive: boolean } | n
   return { text: `${sign}${pct.toFixed(1)}%`, positive: pct >= 0 };
 }
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const session = await requirePortalSession();
 
   if (!session.investorId) {
     return <PendingActivation displayName={session.displayName} />;
   }
+
+  // PREVIEW-ONLY: ?dialog=1 renders the first redemption dialog open so the
+  // screenshot loop can verify it. Gated on PORTAL_PREVIEW; a no-op in any
+  // deployed environment.
+  const sp = searchParams ? await searchParams : undefined;
+  const dialogOpen = isPreview() && sp?.dialog === "1";
 
   const positions = await getPositions(session.investorId);
   const cells = [...new Set(positions.map((p) => p.cell))];
@@ -72,66 +95,70 @@ export default async function DashboardPage() {
 
   return (
     <section className="page-section">
-      <SectionHead num="01" title="Position" />
-
       {positions.length === 0 ? (
-        <div className="empty-state">
+        <div className="empty-state fade-2">
           Nothing to report. The ledger rests. Subscriptions appear here once
           units have been issued at a published NAV.
         </div>
       ) : (
         <>
-          <div className="investor-line">
-            <div className="investor-name">{session.displayName}</div>
-            <div className="investor-sub">
-              {cells.map((c) => `${c} Cell`).join(" · ")} · cAssets AMC, Jersey
-              {asAt ? ` · As at ${fmtDate(asAt)}` : ""}
-            </div>
+          <div className="investor-line fade-1">
+            {cells.map((c) => `${c} Cell`).join(" · ")} · cAssets AMC, Jersey
+            {asAt ? ` · As at ${fmtDate(asAt)}` : ""}
           </div>
 
-          <div className="grid12 hero-figures">
-            {positions.map((p) => {
-              const hist = histories.get(`${p.cell}::${p.share_class}`) ?? [];
-              const perf = sinceInception(hist);
-              return (
-                <div className="hero-fig" key={`${p.cell}-${p.share_class}`}>
-                  <span className="label caps caps-grey">
-                    Class {p.share_class} · {p.denomination}-denominated
+          {positions.map((p, i) => {
+            const hist = histories.get(`${p.cell}::${p.share_class}`) ?? [];
+            const perf = sinceInception(hist);
+            return (
+              <div
+                className={`kpi ${i === 0 ? "fade-2" : "fade-3"}`}
+                key={`${p.cell}-${p.share_class}`}
+              >
+                <div className="kpi-eyebrow">
+                  <span className="glyph" aria-hidden="true">
+                    &#10033;
                   </span>
+                  Net asset value · {p.cell} · Class {p.share_class}
+                </div>
+                <div className="kpi-row">
                   <HeroValue value={p.value} denomination={p.denomination} />
-                  <div className="hero-meta">
-                    <div className="m">
-                      <span className="k">Units held</span>
-                      <span className="v num">{fmtUnits(p.units)}</span>
-                    </div>
-                    <div className="m">
-                      <span className="k">NAV / unit</span>
-                      <span className="v num">
-                        {fmtNav(p.nav_per_unit, p.denomination)}
-                      </span>
-                    </div>
+                  <div className="kpi-pills">
                     {perf && (
-                      <div className="m">
-                        <span className="k">Since inception</span>
-                        <span className={`v num ${perf.positive ? "pos" : "neg"}`}>
-                          {perf.text}
-                        </span>
-                      </div>
+                      <span
+                        className={`pill num${perf.positive ? "" : " pill-negative"}`}
+                      >
+                        {perf.positive ? "↗" : "↘"} {perf.text} since
+                        inception
+                      </span>
                     )}
-                  </div>
-                  <div className="hero-actions">
-                    <RedemptionDialog
-                      cell={p.cell}
-                      shareClass={p.share_class}
-                      denomination={p.denomination}
-                      unitsAvailable={p.units}
-                      navPerUnit={p.nav_per_unit}
-                    />
+                    <span
+                      className={`pill pill-neutral num ${denomClass(p.denomination)}`}
+                    >
+                      NAV/unit {fmtNav(p.nav_per_unit, p.denomination)}
+                    </span>
+                    <span className="pill pill-muted num">
+                      {fmtUnits(p.units)} units held
+                    </span>
                   </div>
                 </div>
-              );
-            })}
-          </div>
+                <div className="kpi-sub">
+                  Class {p.share_class} is {p.denomination}-denominated · As at{" "}
+                  {fmtDate(p.nav_date)}
+                </div>
+                <div className="kpi-actions">
+                  <RedemptionDialog
+                    cell={p.cell}
+                    shareClass={p.share_class}
+                    denomination={p.denomination}
+                    unitsAvailable={p.units}
+                    navPerUnit={p.nav_per_unit}
+                    initiallyOpen={dialogOpen && i === 0}
+                  />
+                </div>
+              </div>
+            );
+          })}
 
           {cells.map((cell) => {
             const cellPositions = positions.filter((p) => p.cell === cell);
@@ -142,10 +169,10 @@ export default async function DashboardPage() {
               );
             if (withStats.length === 0) return null;
             return (
-              <div key={cell}>
+              <div key={cell} className="fade-4">
                 <h3 className="subhead">Your holding within {cell}</h3>
 
-                <div className="grid12 holding-block">
+                <div className="strip" style={{ borderTop: "none" }}>
                   {withStats.map(({ p, stat }) => {
                     const held = Number(p.units);
                     const total = Number(stat.units_outstanding);
@@ -154,55 +181,77 @@ export default async function DashboardPage() {
                         ? (held / total) * 100
                         : null;
                     return (
-                      <div className="holding-row" key={p.share_class}>
-                        <div className="hk">
-                          <span className="cls">
-                            Class {p.share_class} · Units
-                          </span>
-                          {pct !== null && (
-                            <span className="pct num">{pct.toFixed(2)}%</span>
-                          )}
-                        </div>
-                        <div className="hv num">
-                          {fmtUnits(p.units)}{" "}
-                          <span className="of">
-                            of {fmtUnits(stat.units_outstanding)} units in issue
-                          </span>
-                        </div>
-                        <div className="bar-track">
-                          <div
-                            className="bar-fill"
-                            style={{ width: `${Math.min(pct ?? 0, 100)}%` }}
-                          />
+                      <div className="strip-item" key={p.share_class}>
+                        <span className="strip-chip" aria-hidden="true">
+                          {p.share_class}
+                        </span>
+                        <div>
+                          <div className="strip-value num">
+                            {fmtUnits(p.units)}
+                            <span className="unit">units</span>
+                            {pct !== null && <sup>{pct.toFixed(2)}%</sup>}
+                          </div>
+                          <div className="strip-label">
+                            of {fmtUnits(stat.units_outstanding)} in issue ·
+                            Class {p.share_class}
+                          </div>
+                          <div className="strip-bar">
+                            <div
+                              className="fill"
+                              style={{ width: `${Math.min(pct ?? 0, 100)}%` }}
+                            />
+                          </div>
                         </div>
                       </div>
                     );
                   })}
-                </div>
 
-                <div className="grid12 aum-row">
                   {withStats.map(({ stat }) => (
-                    <div className="aum-stat" key={stat.share_class}>
-                      <span className="k">
-                        Cell AUM · Class {stat.share_class}
+                    <div className="strip-item" key={`aum-${stat.share_class}`}>
+                      <span className="strip-chip" aria-hidden="true">
+                        {stat.denomination === "NEAR" ? "N" : "$"}
                       </span>
-                      <span className="v num">
-                        {stat.denomination === "NEAR" ? (
-                          <>
-                            {fmtUnits(stat.aum)}
-                            <span className="unit">NEAR</span>
-                          </>
-                        ) : (
-                          <>${fmtUnits(stat.aum)}</>
-                        )}
-                      </span>
+                      <div>
+                        <div
+                          className={`strip-value num ${denomClass(stat.denomination)}`}
+                        >
+                          {stat.denomination === "NEAR" ? (
+                            <>
+                              {fmtUnits(stat.aum)}
+                              <span className="unit">NEAR</span>
+                            </>
+                          ) : (
+                            <>${fmtUnits(stat.aum)}</>
+                          )}
+                        </div>
+                        <div className="strip-label">
+                          Cell AUM · Class {stat.share_class}
+                        </div>
+                      </div>
                     </div>
                   ))}
-                  <div className="aum-note">
-                    Each class is valued in its own denomination; classes are
-                    not aggregated.
+
+                  <div className="strip-deltas">
+                    {withStats.map(({ p }) => {
+                      const hist = histories.get(`${cell}::${p.share_class}`) ?? [];
+                      const perf = sinceInception(hist);
+                      if (!perf) return null;
+                      return (
+                        <div key={`d-${p.share_class}`}>
+                          Class {p.share_class} since inception{" "}
+                          <b className={`num${perf.positive ? "" : " neg"}`}>
+                            {perf.text}
+                          </b>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
+
+                <p className="strip-note">
+                  Each class is valued in its own denomination; classes are
+                  not aggregated.
+                </p>
               </div>
             );
           })}
@@ -210,19 +259,34 @@ export default async function DashboardPage() {
           {positions.map((p) => {
             const hist = histories.get(`${p.cell}::${p.share_class}`) ?? [];
             if (hist.length < 2) return null;
+            const perf = sinceInception(hist);
             return (
-              <div className="chart-block" key={`chart-${p.cell}-${p.share_class}`}>
+              <div
+                className="chart-block fade-5"
+                key={`chart-${p.cell}-${p.share_class}`}
+              >
                 <div className="chart-head">
                   <h3 className="caps">
                     Net asset value per unit · Class {p.share_class} (
                     {p.denomination})
                   </h3>
+                  <span className="pill pill-muted num">
+                    {hist.length} published NAVs
+                  </span>
                 </div>
-                <Sparkline
-                  values={hist.map((h) => h.nav_per_unit)}
-                  startLabel={fmtDate(hist[0].nav_date)}
-                  endLabel={fmtDate(hist[hist.length - 1].nav_date)}
-                />
+                <div className={denomClass(p.denomination)}>
+                  <BarcodeChart
+                    series={hist.map((h) => ({
+                      date: h.nav_date,
+                      value: Number(h.nav_per_unit),
+                    }))}
+                    denomination={p.denomination}
+                    startLabel={fmtDate(hist[0].nav_date)}
+                    endLabel={fmtDate(hist[hist.length - 1].nav_date)}
+                    segmentLabel={`${p.cell} · Class ${p.share_class}`}
+                    segmentSub={perf ? `${perf.text} since inception` : undefined}
+                  />
+                </div>
               </div>
             );
           })}

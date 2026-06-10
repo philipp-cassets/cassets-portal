@@ -10,9 +10,11 @@ import { AttestationSection } from "./AttestationSection";
 export default function TransparencyPage() {
   return (
     <section className="page-section">
-      <SectionHead num="05" title="Transparency" />
+      <div className="fade-1">
+        <SectionHead title="Transparency" />
+      </div>
 
-      <div className="transparency-hero">
+      <div className="transparency-hero fade-2">
         <p>
           cAssets is a multi-cell asset management platform incorporated in
           Jersey. Each cell holds a defined asset strategy; the first cell,

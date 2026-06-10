@@ -19,19 +19,21 @@ export default async function NewsPage() {
 
   return (
     <section className="page-section">
-      <SectionHead num="04" title="News" />
+      <div className="fade-1">
+        <SectionHead title="News &amp; Reports" />
+      </div>
 
       {posts.length === 0 ? (
-        <div className="empty-state">
+        <div className="empty-state fade-2">
           Nothing to report. When there is news, it will be posted here,
           without fanfare.
         </div>
       ) : (
         posts.map((post) => (
-          <article key={post.id} className="news-post">
+          <article key={post.id} className="news-post fade-2">
             <div className="meta">
               <span>{fmtDateTime(post.published_at)}</span>
-              {post.cell && <span>{post.cell}</span>}
+              {post.cell && <span className="pill pill-xs">{post.cell}</span>}
             </div>
             <h2>{post.title}</h2>
             <div className="news-body">{renderMarkdown(post.body_md)}</div>

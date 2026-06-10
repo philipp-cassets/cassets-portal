@@ -50,15 +50,17 @@ export default async function DocumentsPage() {
 
   return (
     <section className="page-section">
-      <SectionHead num="03" title="Documents" />
+      <div className="fade-1">
+        <SectionHead title="Documents" />
+      </div>
 
       {docs.length === 0 ? (
-        <div className="empty-state">
+        <div className="empty-state fade-2">
           No documents have been issued to you. When they are, they will
           appear here, neatly filed.
         </div>
       ) : (
-        <div className="doc-list">
+        <div className="doc-list fade-2">
           {docs.map((d) => {
             const period = periodLabel(d);
             const ext = fileExt(d.filename);

@@ -51,6 +51,17 @@ function grossValue(r: ActivityRow, denom: Denomination | null): string {
   return "-";
 }
 
+/** "MONDAY, 8 JUN 2026" day-group header (CSS sets the small caps). */
+function dayHeader(d: string): string {
+  const date = new Date(`${d.slice(0, 10)}T00:00:00Z`);
+  if (Number.isNaN(date.getTime())) return String(d);
+  const wd = date.toLocaleDateString("en-GB", { weekday: "long", timeZone: "UTC" });
+  return `${wd}, ${fmtDate(d)}`;
+}
+
+const denomTag = (d: Denomination | null) =>
+  d === "NEAR" ? "denom-near" : d === "USD" ? "denom-usd" : "";
+
 export default async function ActivityPage() {
   const session = await requirePortalSession();
 
@@ -88,80 +99,119 @@ export default async function ActivityPage() {
     return { cell, cls, subscribed, redeemed, closing: subscribed - redeemed };
   });
 
+  // Day-grouped ledger: rows arrive most recent first; group them by
+  // trade date while preserving that order.
+  const days: { date: string; rows: ActivityRow[] }[] = [];
+  for (const r of rows) {
+    const last = days[days.length - 1];
+    if (last && last.date === r.trade_date) last.rows.push(r);
+    else days.push({ date: r.trade_date, rows: [r] });
+  }
+
   return (
     <section className="page-section">
-      <SectionHead num="02" title="Activity" />
+      <div className="fade-1">
+        <SectionHead title="Activity" />
+      </div>
 
-      <p className="page-intro">
+      <p className="page-intro fade-1">
         Subscriptions and redemptions, most recent first. USD and NEAR amounts
         are reported separately and are never combined.
       </p>
 
       {rows.length === 0 ? (
-        <div className="empty-state">Nothing to report. The ledger rests.</div>
+        <div className="empty-state fade-2">Nothing to report. The ledger rests.</div>
       ) : (
         <>
-          <div className="table-scroll">
-            <table className="data">
-              <thead>
-                <tr>
-                  <th>Trade date</th>
-                  <th>Type</th>
-                  <th>Class</th>
-                  <th className="r">Amount (USD)</th>
-                  <th className="r">Amount (NEAR)</th>
-                  <th className="r">Units</th>
-                  <th className="r">NAV / unit</th>
-                  <th className="r">Gross value</th>
-                  <th>Settled</th>
-                  <th>Ref</th>
-                  <th className="r">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((r) => {
-                  const denom = rowDenomination(r, classDenom);
-                  const dead = DEAD.has(r.status.toLowerCase());
-                  return (
-                    <tr key={r.ref} className={dead ? "void" : undefined}>
-                      <td>{fmtDate(r.trade_date)}</td>
-                      <td>{r.type === "subscription" ? "Subscription" : "Redemption"}</td>
-                      <td>{r.share_class}</td>
-                      <td className="r">
-                        {r.amount_usd != null ? fmtUsd(r.amount_usd) : <span className="dim">-</span>}
-                      </td>
-                      <td className="r">
-                        {r.amount_near != null ? fmtNear(r.amount_near) : <span className="dim">-</span>}
-                      </td>
-                      <td className="r">
-                        {r.units != null ? (
-                          fmtUnits(r.units)
-                        ) : r.status.toLowerCase() === "pending" ? (
-                          <span className="pending-note">Awaiting NAV strike</span>
-                        ) : (
-                          <span className="dim">-</span>
-                        )}
-                      </td>
-                      <td className="r">
-                        {r.nav_per_unit != null ? navCell(r, denom) : <span className="dim">-</span>}
-                      </td>
-                      <td className="r">{grossValue(r, denom)}</td>
-                      <td>
-                        {r.settled_at ? fmtDate(r.settled_at) : <span className="dim">-</span>}
-                      </td>
-                      <td className="ref">{r.ref}</td>
-                      <td className="status">
-                        <StatusChip status={r.status} />
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+          <div className="ledger-fade fade-2">
+            <div className="ledger">
+              {days.map((day) => (
+                <div className="led-day" key={day.date}>
+                  <div className="led-day-head">{dayHeader(day.date)}</div>
+                  {day.rows.map((r) => {
+                    const denom = rowDenomination(r, classDenom);
+                    const dead = DEAD.has(r.status.toLowerCase());
+                    const outflow = r.type === "redemption";
+                    const gross = grossValue(r, denom);
+                    return (
+                      <div className={`led-row${dead ? " void" : ""}`} key={r.ref}>
+                        <div className="led-main">
+                          <div>
+                            <div className="led-type">
+                              {r.type === "subscription" ? "Subscription" : "Redemption"}
+                            </div>
+                            <div className="led-ref">{r.ref}</div>
+                          </div>
+                          <div className="led-amounts">
+                            {r.amount_usd != null && (
+                              <span className={`denom-usd${outflow ? " out" : ""}`}>
+                                {outflow ? "−" : ""}
+                                {fmtUsd(r.amount_usd)}
+                              </span>
+                            )}
+                            {r.amount_near != null && (
+                              <span className={`denom-near${outflow ? " out" : ""}`}>
+                                {outflow ? "−" : ""}
+                                {fmtNear(r.amount_near)}
+                              </span>
+                            )}
+                            {r.amount_usd == null &&
+                              r.amount_near == null &&
+                              r.units != null && (
+                                <span className={outflow ? "out" : undefined}>
+                                  {outflow ? "−" : ""}
+                                  {fmtUnits(r.units)} units
+                                </span>
+                              )}
+                          </div>
+                        </div>
+                        <div className="led-meta">
+                          <div className="led-detail">
+                            Class {r.share_class}
+                            <span className="sep">·</span>
+                            {r.units != null ? (
+                              <>{fmtUnits(r.units)} units</>
+                            ) : r.status.toLowerCase() === "pending" ? (
+                              <>Awaiting NAV strike</>
+                            ) : (
+                              <>No units</>
+                            )}
+                            {r.nav_per_unit != null && (
+                              <>
+                                <span className="sep">·</span>
+                                <span className={denomTag(denom)}>
+                                  NAV/unit {navCell(r, denom)}
+                                </span>
+                              </>
+                            )}
+                            {gross !== "-" && (
+                              <>
+                                <span className="sep">·</span>
+                                <span className={denomTag(denom)}>Gross {gross}</span>
+                              </>
+                            )}
+                            {r.settled_at && (
+                              <>
+                                <span className="sep">·</span>
+                                Settled {fmtDate(r.settled_at)}
+                              </>
+                            )}
+                          </div>
+                          <StatusChip status={r.status} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+            <div className="ledger-end" aria-hidden="true">
+              <span className="star">&#10022;</span> Scroll to explore
+            </div>
           </div>
 
           {balances.length > 0 && (
-            <div className="grid12 balances">
+            <div className="balances fade-3">
               {balances.map((b) => (
                 <div className="bal-class" key={`${b.cell}-${b.cls}`}>
                   <div className="bc-title">
@@ -192,44 +242,45 @@ export default async function ActivityPage() {
         </>
       )}
 
-      <h3 className="subhead">Redemption requests</h3>
+      <h3 className="subhead fade-4">Redemption requests</h3>
       {openRequests.length === 0 ? (
-        <div className="empty-state" style={{ borderTop: "none" }}>
+        <div className="empty-state fade-4" style={{ marginTop: 24 }}>
           No open redemption requests.
         </div>
       ) : (
-        <div className="table-scroll requests-block">
-          <table className="data">
-            <thead>
-              <tr>
-                <th>Requested</th>
-                <th>Class</th>
-                <th className="r">Units</th>
-                <th>Note</th>
-                <th>Ref</th>
-                <th className="r">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {openRequests.map((q) => (
-                <tr key={q.id}>
-                  <td>{fmtDate(q.requested_at)}</td>
-                  <td>{q.share_class}</td>
-                  <td className="r">{fmtUnits(q.units)}</td>
-                  <td>{q.note ?? <span className="dim">-</span>}</td>
-                  <td className="ref">{q.ref}</td>
-                  <td className="status">
-                    <StatusChip status="Requested" />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="requests-block fade-4">
+          {openRequests.map((q) => (
+            <div className="led-row" key={q.id}>
+              <div className="led-main">
+                <div>
+                  <div className="led-type">Redemption request</div>
+                  <div className="led-ref">{q.ref}</div>
+                </div>
+                <div className="led-amounts">
+                  <span>{fmtUnits(q.units)} units</span>
+                </div>
+              </div>
+              <div className="led-meta">
+                <div className="led-detail">
+                  Class {q.share_class}
+                  <span className="sep">·</span>
+                  Requested {fmtDate(q.requested_at)}
+                  {q.note && (
+                    <>
+                      <span className="sep">·</span>
+                      {q.note}
+                    </>
+                  )}
+                </div>
+                <StatusChip status="Requested" />
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
       {positions.length > 0 && (
-        <div className="activity-actions">
+        <div className="activity-actions fade-4">
           {positions.map((p) => (
             <span key={`${p.cell}-${p.share_class}`}>
               <span className="caps caps-grey" style={{ marginRight: 12 }}>
@@ -247,7 +298,7 @@ export default async function ActivityPage() {
         </div>
       )}
 
-      <p className="footnote">
+      <p className="footnote fade-4">
         Subscriptions settle T+2 from the applicable NAV strike. Amounts
         pending a NAV strike are excluded from running balances until units
         are issued. Cancelled instructions are retained on the record for

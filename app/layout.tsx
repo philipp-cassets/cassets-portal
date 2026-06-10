@@ -1,10 +1,21 @@
 import type { Metadata } from "next";
+import { Inter_Tight } from "next/font/google";
 import { StackProvider, StackTheme } from "@stackframe/stack";
 import { stackServerApp } from "@/stack";
 import { getOptionalUser } from "@/lib/auth";
-import { Header } from "@/components/Header";
+import { isPreview } from "@/lib/preview";
+import { Sidebar } from "@/components/Sidebar";
+import { PortalHeader } from "@/components/PortalHeader";
 import { Footer } from "@/components/Footer";
 import "./globals.css";
+
+const interTight = Inter_Tight({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-inter-tight",
+  display: "swap",
+  fallback: ["system-ui", "-apple-system", "Helvetica Neue", "Arial", "sans-serif"],
+});
 
 export const metadata: Metadata = {
   title: "cAssets · Investor Portal",
@@ -15,70 +26,77 @@ export const metadata: Metadata = {
 // Every page is per-session; nothing is statically prerendered.
 export const dynamic = "force-dynamic";
 
-// Auth UI chrome themed to the house style: warm paper, forest primary,
-// hairline borders in light; the same voice on ink in dark. Both sets
-// mirror the palettes in globals.css.
+// Auth UI chrome themed to the Analitica language: warm paper, ink,
+// sage-olive primary, hairline borders in light; the same voice on warm
+// charcoal in dark. Both sets mirror the palettes in globals.css.
 const stackLightColors = {
-  background: "#f5f2ea",
-  foreground: "#14161a",
-  card: "#f5f2ea",
-  cardForeground: "#14161a",
-  popover: "#f5f2ea",
-  popoverForeground: "#14161a",
-  primary: "#1f3d2b",
-  primaryForeground: "#f5f2ea",
-  secondary: "#dbd6c8",
-  secondaryForeground: "#14161a",
-  muted: "#dbd6c8",
-  mutedForeground: "#6f6b62",
-  accent: "#dbd6c8",
-  accentForeground: "#14161a",
-  destructive: "#6e1d24",
-  destructiveForeground: "#f5f2ea",
-  border: "#dbd6c8",
-  input: "#dbd6c8",
-  ring: "#1f3d2b",
+  background: "#f2f1ee",
+  foreground: "#16140f",
+  card: "#ffffff",
+  cardForeground: "#16140f",
+  popover: "#ffffff",
+  popoverForeground: "#16140f",
+  primary: "#3f4430",
+  primaryForeground: "#f2f1ee",
+  secondary: "#e4e2db",
+  secondaryForeground: "#16140f",
+  muted: "#e4e2db",
+  mutedForeground: "#73706a",
+  accent: "#e0e1d3",
+  accentForeground: "#3f4430",
+  destructive: "#9c4a33",
+  destructiveForeground: "#f2f1ee",
+  border: "#e0ded7",
+  input: "#e0ded7",
+  ring: "#3f4430",
 };
 
 const stackDarkColors = {
-  background: "#14161a",
-  foreground: "#ede9dd",
-  card: "#1b1e24",
-  cardForeground: "#ede9dd",
-  popover: "#1b1e24",
-  popoverForeground: "#ede9dd",
-  primary: "#4f8364",
-  primaryForeground: "#14161a",
-  secondary: "#2e3138",
-  secondaryForeground: "#ede9dd",
-  muted: "#2e3138",
-  mutedForeground: "#8b867a",
-  accent: "#2e3138",
-  accentForeground: "#ede9dd",
-  destructive: "#b0524a",
-  destructiveForeground: "#14161a",
-  border: "#2e3138",
-  input: "#2e3138",
-  ring: "#4f8364",
+  background: "#191713",
+  foreground: "#eae6dc",
+  card: "#211e18",
+  cardForeground: "#eae6dc",
+  popover: "#211e18",
+  popoverForeground: "#eae6dc",
+  primary: "#c9cea9",
+  primaryForeground: "#191713",
+  secondary: "#2b2823",
+  secondaryForeground: "#eae6dc",
+  muted: "#2b2823",
+  mutedForeground: "#979388",
+  accent: "#34372a",
+  accentForeground: "#c9cea9",
+  destructive: "#c97e66",
+  destructiveForeground: "#191713",
+  border: "#2e2b25",
+  input: "#2e2b25",
+  ring: "#c9cea9",
 };
 
 const stackTheme = {
   light: stackLightColors,
   dark: stackDarkColors,
-  radius: "2px",
+  radius: "12px",
 };
 
-// Restores a persisted theme choice before first paint so there is no
-// flash. Runs as the first node in <body>; absent or invalid storage means
-// no data-theme, which lets prefers-color-scheme decide via globals.css.
-const themeInitScript = `try{var t=localStorage.getItem("cassets-theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t}catch(e){}`;
+// Restores the persisted theme and denomination choices before first paint
+// so there is no flash. Runs as the first node in <body>. The key is
+// versioned (cassets-theme-v2) so stale "dark" preferences from the old
+// design do not apply; absent or invalid storage means light, the
+// canonical default, and the USD default denomination.
+const themeInitScript = `try{var t=localStorage.getItem("cassets-theme-v2");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t;var d=localStorage.getItem("cassets-denom");if(d==="USD"||d==="NEAR")document.documentElement.dataset.denom=d}catch(e){}`;
+
+// PREVIEW-ONLY: lets the screenshot loop verify dark mode via ?theme=dark.
+// Appended to the init script only when PORTAL_PREVIEW=1, never in a
+// deployed environment.
+const previewThemeScript = `try{var q=new URLSearchParams(location.search).get("theme");if(q==="dark"||q==="light")document.documentElement.dataset.theme=q}catch(e){}`;
 
 export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // Header chrome only: resolve the signed-in user (if any).
+  // Shell chrome only: resolve the signed-in user (if any).
   // Failures here must never take the whole shell down.
   let signedIn = false;
   let displayName: string | null = null;
@@ -94,14 +112,23 @@ export default async function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <body>
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      <body className={interTight.variable}>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: isPreview()
+              ? themeInitScript + previewThemeScript
+              : themeInitScript,
+          }}
+        />
         <StackProvider app={stackServerApp}>
           <StackTheme theme={stackTheme}>
             <div className="shell">
-              <Header signedIn={signedIn} displayName={displayName} />
-              <main className="container">{children}</main>
-              <Footer />
+              <Sidebar signedIn={signedIn} displayName={displayName} />
+              <div className="canvas">
+                <PortalHeader signedIn={signedIn} displayName={displayName} />
+                <main className="container">{children}</main>
+                <Footer />
+              </div>
             </div>
           </StackTheme>
         </StackProvider>

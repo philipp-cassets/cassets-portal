@@ -2,13 +2,15 @@
 
 import { useEffect, useState } from "react";
 
-const STORAGE_KEY = "cassets-theme";
+// Versioned key: stale "dark" preferences stored under the old design's
+// key must not apply to the rebuilt light-canonical portal.
+const STORAGE_KEY = "cassets-theme-v2";
 
 /**
  * Dependency-free light/dark toggle in the house voice: a quiet 11px caps
- * text button. Default follows the system; an explicit choice is persisted
- * to localStorage and applied as data-theme on <html> (the pre-paint script
- * in the layout restores it before first paint).
+ * text button. Light is the canonical default; an explicit choice is
+ * persisted to localStorage and applied as data-theme on <html> (the
+ * pre-paint script in the layout restores it before first paint).
  */
 export function ThemeToggle() {
   // null until mounted so the server and first client render agree.
@@ -16,15 +18,7 @@ export function ThemeToggle() {
 
   useEffect(() => {
     const explicit = document.documentElement.dataset.theme;
-    if (explicit === "dark" || explicit === "light") {
-      setTheme(explicit);
-    } else {
-      setTheme(
-        window.matchMedia("(prefers-color-scheme: dark)").matches
-          ? "dark"
-          : "light"
-      );
-    }
+    setTheme(explicit === "dark" ? "dark" : "light");
   }, []);
 
   function toggle() {

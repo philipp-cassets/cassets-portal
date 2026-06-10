@@ -8,7 +8,7 @@ import { logAccess } from "@/lib/log";
  *   1. valid Stack Auth session
  *   2. active investor_users mapping
  *   3. the document's investor_id (via v_portal_documents, published-only)
- *      must equal the session investor — enforced inside the SQL join.
+ *      must equal the session investor - enforced inside the SQL join.
  * Every successful download is access-logged (fire-and-forget).
  */
 export async function GET(
@@ -29,7 +29,7 @@ export async function GET(
 
   const doc = await getDocumentForInvestor(id, investorId);
   if (!doc) {
-    // Not found OR not owned by this investor — identical response either
+    // Not found OR not owned by this investor - identical response either
     // way, so document ids cannot be probed.
     return new Response("Not found", { status: 404 });
   }

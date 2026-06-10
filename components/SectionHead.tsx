@@ -1,20 +1,15 @@
 /**
- * Section head in the report style: a 96px ultra-light ghost number behind
- * a hairline-ruled caps title. Page numbering is fixed across the portal:
- * 01 Position, 02 Activity, 03 Documents, 04 News, 05 Transparency.
+ * Section head in the Analitica voice: a thin grey label row with a small
+ * four-point star glyph, like the target's "Capital under control" eyebrow.
+ * No ghost page numbers - those belonged to the previous design.
  */
-export function SectionHead({ num, title }: { num: string; title: string }) {
+export function SectionHead({ title }: { title: string }) {
   return (
     <div className="section-head">
-      <div className="section-ghost" aria-hidden="true">
-        {num}
-      </div>
-      <div className="section-title">
-        {num}
-        <span className="slash">/</span>
-        {title}
-      </div>
-      <div className="section-rule" />
+      <span className="section-glyph" aria-hidden="true">
+        &#10022;
+      </span>
+      <span className="section-title">{title}</span>
     </div>
   );
 }
