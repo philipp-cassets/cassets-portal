@@ -1,6 +1,7 @@
 import { requirePortalSession } from "@/lib/auth";
 import { getNews, getPositions } from "@/lib/data";
 import { PendingActivation } from "@/components/PendingActivation";
+import { SectionHead } from "@/components/SectionHead";
 import { renderMarkdown } from "@/lib/markdown";
 import { fmtDateTime } from "@/lib/format";
 
@@ -17,11 +18,8 @@ export default async function NewsPage() {
   const posts = await getNews(cells);
 
   return (
-    <>
-      <h1 className="page-title">News</h1>
-      <p className="page-subtitle">
-        Updates from the cAssets platform and your cells.
-      </p>
+    <section className="page-section">
+      <SectionHead num="04" title="News" />
 
       {posts.length === 0 ? (
         <div className="empty-state">
@@ -29,22 +27,17 @@ export default async function NewsPage() {
           without fanfare.
         </div>
       ) : (
-        posts.map((post, i) => (
+        posts.map((post) => (
           <article key={post.id} className="news-post">
-            {i > 0 && (
-              <div className="fleuron" aria-hidden="true">
-                ❧
-              </div>
-            )}
             <div className="meta">
               <span>{fmtDateTime(post.published_at)}</span>
-              {post.cell && <span className="cell-badge">{post.cell}</span>}
+              {post.cell && <span>{post.cell}</span>}
             </div>
             <h2>{post.title}</h2>
             <div className="news-body">{renderMarkdown(post.body_md)}</div>
           </article>
         ))
       )}
-    </>
+    </section>
   );
 }

@@ -7,7 +7,7 @@ import { isPreview, previewData } from "./preview";
  * Typed reads against the cassets portal views.
  * EVERY investor-scoped query filters on investor_id. Do not add a query
  * here without that filter unless the underlying view has no investor data
- * (v_portal_nav, v_portal_news).
+ * (v_portal_nav, v_portal_news, v_portal_cell_stats).
  */
 
 export type PositionRow = {
@@ -33,6 +33,36 @@ export async function getPositions(investorId: string): Promise<PositionRow[]> {
   );
 }
 
+export type CellStatsRow = {
+  cell: string;
+  share_class: string;
+  denomination: Denomination;
+  units_outstanding: string;
+  nav_per_unit: string;
+  nav_date: string;
+  /** Class AUM, expressed in the class's own denomination. */
+  aum: string;
+};
+
+/**
+ * Cell-level class statistics (units in issue, class AUM) for the cells the
+ * investor holds. The view carries no investor data; scoping to held cells
+ * happens via the parameter.
+ */
+export async function getCellStats(cells: string[]): Promise<CellStatsRow[]> {
+  if (isPreview()) {
+    return previewData.cellStats.filter((s) => cells.includes(s.cell));
+  }
+  return query<CellStatsRow>(
+    `SELECT cell, share_class, denomination, units_outstanding,
+            nav_per_unit, nav_date, aum
+       FROM cassets.v_portal_cell_stats
+      WHERE cell = ANY($1::text[])
+      ORDER BY cell, share_class`,
+    [cells]
+  );
+}
+
 export type ActivityRow = {
   investor_id: string;
   type: "subscription" | "redemption";
@@ -42,16 +72,46 @@ export type ActivityRow = {
   units: string | null;
   nav_per_unit: string | null;
   status: string;
+  cell: string;
+  share_class: string;
+  settled_at: string | null;
+  ref: string;
 };
 
 export async function getActivity(investorId: string): Promise<ActivityRow[]> {
   if (isPreview()) return previewData.activity;
   return query<ActivityRow>(
     `SELECT investor_id, type, trade_date, amount_usd, amount_near,
-            units, nav_per_unit, status
+            units, nav_per_unit, status, cell, share_class, settled_at, ref
        FROM cassets.v_portal_activity
       WHERE investor_id = $1
       ORDER BY trade_date DESC`,
+    [investorId]
+  );
+}
+
+export type RedemptionRequestRow = {
+  investor_id: string;
+  id: string;
+  ref: string;
+  cell: string;
+  share_class: string;
+  units: string;
+  status: string;
+  requested_at: string;
+  note: string | null;
+};
+
+export async function getRedemptionRequests(
+  investorId: string
+): Promise<RedemptionRequestRow[]> {
+  if (isPreview()) return previewData.redemptionRequests;
+  return query<RedemptionRequestRow>(
+    `SELECT investor_id, id, ref, cell, share_class, units, status,
+            requested_at, note
+       FROM cassets.v_portal_redemption_requests
+      WHERE investor_id = $1
+      ORDER BY requested_at DESC`,
     [investorId]
   );
 }

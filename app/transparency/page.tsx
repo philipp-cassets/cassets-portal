@@ -1,16 +1,18 @@
+import { SectionHead } from "@/components/SectionHead";
 import { AttestationSection } from "./AttestationSection";
 
 /**
- * PUBLIC page — no auth, no database reads. Explains the upcoming on-chain
+ * PUBLIC page - no auth, no database reads. Explains the upcoming on-chain
  * attestation reporting. When the platform publishes a transparency view,
  * swap the placeholder inside <AttestationSection /> for a server component
  * that reads it.
  */
 export default function TransparencyPage() {
   return (
-    <>
+    <section className="page-section">
+      <SectionHead num="05" title="Transparency" />
+
       <div className="transparency-hero">
-        <h1>Transparency</h1>
         <p>
           cAssets is a multi-cell asset management platform incorporated in
           Jersey. Each cell holds a defined asset strategy; the first cell,
@@ -29,11 +31,7 @@ export default function TransparencyPage() {
         </p>
       </div>
 
-      <div className="fleuron" aria-hidden="true">
-        ※
-      </div>
-
       <AttestationSection />
-    </>
+    </section>
   );
 }

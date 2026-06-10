@@ -1,10 +1,12 @@
 import "server-only";
 import { getPool } from "./db";
+import { isPreview } from "./preview";
 
 /**
  * Fire-and-forget access log write. MUST never block or fail rendering:
  * we deliberately do not await this at call sites, and every failure path
- * is swallowed (logged to server console only).
+ * is swallowed (logged to server console only). No-op in preview mode,
+ * which never touches the database.
  */
 export function logAccess(
   authUserId: string,
@@ -12,6 +14,7 @@ export function logAccess(
   action: string,
   detail: string | null = null
 ): void {
+  if (isPreview()) return;
   try {
     getPool()
       .query(

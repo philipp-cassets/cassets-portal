@@ -1,56 +1,62 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 /**
- * Site header. Server component: receives already-resolved data, performs no
- * queries itself. `cells` are the cells the signed-in investor holds.
+ * Site header in the report style: wordmark and session line on the
+ * masthead, letterspaced caps navigation below with the current page
+ * underlined in forest. Client component only for usePathname; it receives
+ * already-resolved session data and performs no queries.
  */
 export function Header({
   signedIn,
-  cells,
+  displayName,
 }: {
   signedIn: boolean;
-  cells: string[];
+  displayName: string | null;
 }) {
+  const pathname = usePathname();
+
+  const links = signedIn
+    ? [
+        { href: "/", label: "Position" },
+        { href: "/activity", label: "Activity" },
+        { href: "/documents", label: "Documents" },
+        { href: "/news", label: "News" },
+        { href: "/transparency", label: "Transparency" },
+      ]
+    : [{ href: "/transparency", label: "Transparency" }];
+
   return (
     <header className="site-header">
-      <div className="container inner">
-        <Link href="/" className="brand">
-          <span className="crest" aria-hidden="true">
-            <span className="crest-inner">cA</span>
-          </span>
-          <span className="wordmark">
-            <span className="wm-c">c</span>Assets
-          </span>
-        </Link>
-        {cells.length > 0 && (
-          <div className="cell-badges">
-            {cells.map((cell) => (
-              <span key={cell} className="cell-badge">
-                {cell}
-              </span>
-            ))}
+      <div className="container">
+        <div className="masthead">
+          <Link href="/" className="wordmark">
+            <span className="wm-c">c</span>
+            <span className="wm-rest">Assets</span>
+          </Link>
+          <div className="session">
+            {signedIn ? (
+              <>
+                {displayName && <b>{displayName}</b>}
+                <a href="/handler/sign-out">Sign out</a>
+              </>
+            ) : (
+              <a href="/handler/sign-in">Investor sign in</a>
+            )}
           </div>
-        )}
+        </div>
         <nav className="site-nav">
-          {signedIn ? (
-            <>
-              <Link href="/">Position</Link>
-              <Link href="/activity">Activity</Link>
-              <Link href="/documents">Documents</Link>
-              <Link href="/news">News</Link>
-              <Link href="/transparency">Transparency</Link>
-              <a href="/handler/sign-out" className="signout">
-                Sign out
-              </a>
-            </>
-          ) : (
-            <>
-              <Link href="/transparency">Transparency</Link>
-              <a href="/handler/sign-in" className="signout">
-                Investor sign in
-              </a>
-            </>
-          )}
+          {links.map((l) => (
+            <Link
+              key={l.href}
+              href={l.href}
+              className={pathname === l.href ? "current" : undefined}
+            >
+              {l.label}
+            </Link>
+          ))}
         </nav>
       </div>
     </header>

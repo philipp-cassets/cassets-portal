@@ -5,7 +5,7 @@
 export function PendingActivation({ displayName }: { displayName: string }) {
   return (
     <div className="pending-screen">
-      <span className="chip pending">Pending activation</span>
+      <div className="status-line">Pending activation</div>
       <h1>Your account awaits activation</h1>
       <p>
         Welcome, {displayName}. Your sign-in was successful, but your account

@@ -1,5 +1,13 @@
 import "server-only";
-import type { PositionRow, ActivityRow, NavRow, DocumentRow, NewsRow } from "./data";
+import type {
+  PositionRow,
+  ActivityRow,
+  NavRow,
+  DocumentRow,
+  NewsRow,
+  CellStatsRow,
+  RedemptionRequestRow,
+} from "./data";
 
 /**
  * LOCAL DESIGN-PREVIEW MODE. Active only when PORTAL_PREVIEW=1 (never set in
@@ -23,11 +31,11 @@ function navSeries(start: number, drift: number, days: number): NavRow[] {
   let nav = start;
   for (let i = days; i >= 0; i--) {
     const d = new Date(Date.UTC(2026, 5, 10) - i * 86400000);
-    // deterministic wobble, no Math.random — preview must be stable
+    // deterministic wobble, no Math.random - preview must be stable
     nav = nav * (1 + drift + 0.004 * Math.sin(i * 1.7));
     rows.push({
       cell: "CNEAR",
-      share_class: i % 1 === 0 ? "N" : "N",
+      share_class: "N",
       nav_date: d.toISOString().slice(0, 10),
       nav_per_unit: nav.toFixed(6),
     });
@@ -38,6 +46,14 @@ function navSeries(start: number, drift: number, days: number): NavRow[] {
 const navN = navSeries(1.0, 0.0011, 60);
 const navU = navSeries(1.0, 0.0008, 60).map((r) => ({ ...r, share_class: "U" }));
 
+const lastNavN = navN[navN.length - 1].nav_per_unit;
+const lastNavU = navU[navU.length - 1].nav_per_unit;
+
+// Class totals for the whole cell. Held units (2,500,000 N / 1,000,000 U)
+// against these produce ~13.59% / ~13.07% proportion bars.
+const UNITS_OUTSTANDING_N = 18_400_000;
+const UNITS_OUTSTANDING_U = 7_650_000;
+
 export const previewData = {
   positions: [
     {
@@ -46,8 +62,8 @@ export const previewData = {
       share_class: "N",
       denomination: "NEAR",
       units: "2500000",
-      nav_per_unit: navN[navN.length - 1].nav_per_unit,
-      value: (2500000 * Number(navN[navN.length - 1].nav_per_unit)).toFixed(0),
+      nav_per_unit: lastNavN,
+      value: (2500000 * Number(lastNavN)).toFixed(0),
       nav_date: "2026-06-10",
     },
     {
@@ -56,18 +72,114 @@ export const previewData = {
       share_class: "U",
       denomination: "USD",
       units: "1000000",
-      nav_per_unit: navU[navU.length - 1].nav_per_unit,
-      value: (1000000 * Number(navU[navU.length - 1].nav_per_unit)).toFixed(2),
+      nav_per_unit: lastNavU,
+      value: (1000000 * Number(lastNavU)).toFixed(2),
       nav_date: "2026-06-10",
     },
   ] as PositionRow[],
 
+  cellStats: [
+    {
+      cell: "CNEAR",
+      share_class: "N",
+      denomination: "NEAR",
+      units_outstanding: String(UNITS_OUTSTANDING_N),
+      nav_per_unit: lastNavN,
+      nav_date: "2026-06-10",
+      aum: (UNITS_OUTSTANDING_N * Number(lastNavN)).toFixed(0),
+    },
+    {
+      cell: "CNEAR",
+      share_class: "U",
+      denomination: "USD",
+      units_outstanding: String(UNITS_OUTSTANDING_U),
+      nav_per_unit: lastNavU,
+      nav_date: "2026-06-10",
+      aum: (UNITS_OUTSTANDING_U * Number(lastNavU)).toFixed(2),
+    },
+  ] as CellStatsRow[],
+
   activity: [
-    { investor_id: PREVIEW_INVESTOR_ID, type: "subscription", trade_date: "2026-04-01", amount_near: "2500000", amount_usd: null, units: "2500000", nav_per_unit: "1.000000", status: "settled" },
-    { investor_id: PREVIEW_INVESTOR_ID, type: "subscription", trade_date: "2026-04-15", amount_usd: "1000000", amount_near: null, units: "1000000", nav_per_unit: "1.000000", status: "settled" },
-    { investor_id: PREVIEW_INVESTOR_ID, type: "subscription", trade_date: "2026-06-08", amount_usd: "250000", amount_near: null, units: null, nav_per_unit: null, status: "pending" },
-    { investor_id: PREVIEW_INVESTOR_ID, type: "redemption", trade_date: "2026-05-20", amount_usd: null, amount_near: null, units: "100000", nav_per_unit: null, status: "cancelled" },
+    {
+      investor_id: PREVIEW_INVESTOR_ID,
+      type: "subscription",
+      trade_date: "2026-06-08",
+      amount_usd: "250000",
+      amount_near: null,
+      units: null,
+      nav_per_unit: null,
+      status: "pending",
+      cell: "CNEAR",
+      share_class: "U",
+      settled_at: null,
+      ref: "SUB-2026-0019",
+    },
+    {
+      investor_id: PREVIEW_INVESTOR_ID,
+      type: "redemption",
+      trade_date: "2026-05-20",
+      amount_usd: null,
+      amount_near: null,
+      units: "100000",
+      nav_per_unit: null,
+      status: "cancelled",
+      cell: "CNEAR",
+      share_class: "N",
+      settled_at: null,
+      ref: "RED-2026-0002",
+    },
+    {
+      investor_id: PREVIEW_INVESTOR_ID,
+      type: "subscription",
+      trade_date: "2026-04-15",
+      amount_usd: "1000000",
+      amount_near: null,
+      units: "1000000",
+      nav_per_unit: "1.000000",
+      status: "settled",
+      cell: "CNEAR",
+      share_class: "U",
+      settled_at: "2026-04-17T12:00:00Z",
+      ref: "SUB-2026-0011",
+    },
+    {
+      investor_id: PREVIEW_INVESTOR_ID,
+      type: "subscription",
+      trade_date: "2026-04-01",
+      amount_near: "2500000",
+      amount_usd: null,
+      units: "2500000",
+      nav_per_unit: "1.000000",
+      status: "settled",
+      cell: "CNEAR",
+      share_class: "N",
+      settled_at: "2026-04-03T12:00:00Z",
+      ref: "SUB-2026-0007",
+    },
   ] as ActivityRow[],
+
+  redemptionRequests: [
+    {
+      investor_id: PREVIEW_INVESTOR_ID,
+      id: "req-0003",
+      ref: "REQ-2026-0003",
+      cell: "CNEAR",
+      share_class: "N",
+      units: "50000",
+      status: "requested",
+      requested_at: "2026-06-09T09:30:00Z",
+      note: null,
+    },
+  ] as RedemptionRequestRow[],
+
+  /** Readback returned by the redemption-request route in preview mode. */
+  redemptionReadback: (units: number, shareClass: string) => ({
+    id: "req-preview-new",
+    ref: "REQ-2026-0042",
+    units: String(units),
+    share_class: shareClass,
+    status: "requested" as const,
+  }),
 
   nav: { N: navN, U: navU } as Record<string, NavRow[]>,
 
