@@ -1,25 +1,23 @@
 /*
- * cAssets investor portal — design language: Stripe Press × Mercury.
- * Warm paper, slate accent, serif headlines, grotesk data, generous
- * whitespace, restrained color.
+ * cAssets investor portal — design language: quirky old money.
+ * The printed statement of a 200-year-old private bank, set by a
+ * typesetter with a sense of humor. Ivory paper, oxblood accent,
+ * engraved serif numerals, dotted passbook leaders, ink stamps.
  */
 
 :root {
-  --paper: #f7f4ee;
-  --paper-deep: #efeae0;
-  --card: #fffdf9;
-  --ink: #1c1b18;
-  --ink-soft: #4a463e;
-  --muted: #8a8378;
+  --paper: #f6f1e7;
+  --card: #fcf9f2;
+  --ink: #1c2230;
+  --muted: #6b6557;
+  --hairline: #dcd3bf;
+  --oxblood: #6e1d24;
   --slate: #3e4c5e;
-  --slate-soft: #5a6b80;
-  --hairline: #e3dccd;
-  --hairline-strong: #d2c9b6;
-  --positive: #2e6b46;
-  --pending: #8a6d1f;
-  --negative: #8c3325;
+  --sage: #5e6b45;
+  --ochre: #a9824b;
+  --negative: #8c2b1e;
 
-  --serif: Georgia, "Iowan Old Style", "Times New Roman", "Freight Text Pro",
+  --serif: Baskerville, "Baskerville Old Face", "Libre Baskerville", Georgia,
     serif;
   --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue",
     Arial, sans-serif;
@@ -43,11 +41,22 @@ body {
 }
 
 a {
-  color: var(--slate);
+  color: var(--oxblood);
   text-decoration: none;
 }
 a:hover {
   text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Section labels everywhere: engraved small caps. */
+.label,
+.eyebrow {
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
 }
 
 /* ---------- Shell ---------- */
@@ -82,18 +91,55 @@ main.container {
   display: flex;
   align-items: center;
   gap: 20px;
-  height: 68px;
+  height: 76px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--ink);
+}
+.brand:hover {
+  text-decoration: none;
+}
+
+/* Monogram crest: "cA" in a thin double-ring circle, oxblood. */
+.crest {
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--oxblood);
+  border-radius: 50%;
+  padding: 2.5px;
+  display: inline-flex;
+  flex: none;
+}
+.crest .crest-inner {
+  flex: 1;
+  border: 1px solid var(--oxblood);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--serif);
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  color: var(--oxblood);
+  padding-bottom: 1px;
 }
 
 .wordmark {
   font-family: var(--serif);
-  font-size: 22px;
+  font-size: 23px;
   letter-spacing: 0.01em;
   color: var(--ink);
   font-weight: 400;
+  line-height: 1;
 }
-.wordmark:hover {
-  text-decoration: none;
+.wordmark .wm-c {
+  font-weight: 300;
+  color: var(--muted);
+  margin-right: 0.5px;
 }
 
 .cell-badges {
@@ -104,12 +150,12 @@ main.container {
 .cell-badge {
   font-family: var(--sans);
   font-size: 11px;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--slate);
-  border: 1px solid var(--hairline-strong);
-  border-radius: 999px;
-  padding: 2px 10px;
+  border: 1px solid var(--hairline);
+  border-radius: 2px;
+  padding: 2px 9px;
   background: var(--card);
 }
 
@@ -122,23 +168,26 @@ main.container {
 
 .site-nav a {
   font-size: 13.5px;
-  color: var(--ink-soft);
+  color: var(--ink);
 }
 .site-nav a:hover {
-  color: var(--ink);
+  color: var(--oxblood);
   text-decoration: none;
 }
 
 .signout {
-  font-size: 13px;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   color: var(--muted);
-  border: 1px solid var(--hairline-strong);
-  border-radius: 6px;
-  padding: 4px 12px;
+  border: 1px solid var(--hairline);
+  border-radius: 2px;
+  padding: 5px 13px;
   background: transparent;
 }
 .signout:hover {
-  color: var(--ink);
+  color: var(--oxblood);
+  border-color: var(--oxblood);
   text-decoration: none;
 }
 
@@ -146,14 +195,23 @@ main.container {
 
 .site-footer {
   border-top: 1px solid var(--hairline);
-  padding: 28px 0 40px;
+  padding: 26px 0 44px;
   background: var(--paper);
 }
 
 .site-footer .inner {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 10px;
+}
+
+.site-footer .colophon {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
 }
 
 .site-footer p {
@@ -161,6 +219,7 @@ main.container {
   font-size: 12px;
   color: var(--muted);
   line-height: 1.7;
+  max-width: 720px;
 }
 
 /* ---------- Typography ---------- */
@@ -168,7 +227,7 @@ main.container {
 .page-title {
   font-family: var(--serif);
   font-weight: 400;
-  font-size: 32px;
+  font-size: 34px;
   line-height: 1.2;
   margin: 0 0 6px;
   color: var(--ink);
@@ -178,13 +237,24 @@ main.container {
   font-size: 14px;
   color: var(--muted);
   margin: 0 0 40px;
+  max-width: 620px;
 }
 
 .section-title {
   font-family: var(--serif);
   font-weight: 400;
-  font-size: 20px;
+  font-size: 21px;
   margin: 48px 0 16px;
+}
+
+/* Fleuron divider between major sections. */
+.fleuron {
+  text-align: center;
+  color: var(--muted);
+  font-family: var(--serif);
+  font-size: 17px;
+  margin: 44px 0;
+  user-select: none;
 }
 
 /* ---------- Cards ---------- */
@@ -192,78 +262,100 @@ main.container {
 .card {
   background: var(--card);
   border: 1px solid var(--hairline);
-  border-radius: 10px;
-  padding: 28px;
+  border-radius: 3px;
+  padding: 30px 32px;
 }
 
 .position-card {
-  margin-bottom: 24px;
+  margin-bottom: 28px;
 }
 
 .position-card .card-head {
   display: flex;
   align-items: baseline;
-  gap: 12px;
-  margin-bottom: 22px;
+  gap: 14px;
+  margin-bottom: 6px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--hairline);
 }
 
 .position-card .cell-name {
   font-family: var(--serif);
-  font-size: 22px;
+  font-size: 23px;
 }
 
 .position-card .class-name {
-  font-size: 13px;
-  color: var(--muted);
-}
-
-.stat-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 48px;
-  margin-bottom: 8px;
-}
-
-.stat .label {
   font-size: 11px;
-  letter-spacing: 0.09em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--muted);
-  margin-bottom: 4px;
 }
 
-.stat .value {
-  font-size: 22px;
-  font-variant-numeric: tabular-nums;
+/* The headline figure: oversized engraved serif numerals. */
+.headline-figure {
+  padding: 22px 0 6px;
+}
+.headline-figure .label {
+  margin-bottom: 6px;
+}
+.headline-figure .value {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(48px, 7vw, 64px);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
   color: var(--ink);
+  font-variant-numeric: tabular-nums;
 }
-
-.stat .value.principal {
-  font-size: 26px;
-}
-
-.stat .sub {
+.headline-figure .sub {
   font-size: 12px;
   color: var(--muted);
-  margin-top: 2px;
+  margin-top: 8px;
+}
+
+/* Passbook ledger: label and value joined by a dotted leader. */
+.ledger {
+  margin-top: 18px;
+  max-width: 460px;
+}
+.ledger-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 7px 0;
+}
+.ledger-row .lbl {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  flex: none;
+}
+.ledger-row .leader {
+  flex: 1;
+  border-bottom: 1px dotted var(--hairline);
+  transform: translateY(-4px);
+  min-width: 24px;
+}
+.ledger-row .val {
+  font-variant-numeric: tabular-nums;
+  font-size: 15px;
+  color: var(--ink);
+  text-align: right;
 }
 
 .nav-history {
-  margin-top: 24px;
-  padding-top: 20px;
+  margin-top: 26px;
+  padding-top: 22px;
   border-top: 1px solid var(--hairline);
   display: flex;
-  gap: 40px;
+  gap: 44px;
   align-items: flex-start;
   flex-wrap: wrap;
 }
 
 .sparkline-wrap .label {
-  font-size: 11px;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 /* ---------- Tables ---------- */
@@ -278,19 +370,20 @@ table.data {
 table.data th {
   text-align: left;
   font-size: 11px;
-  letter-spacing: 0.09em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   font-weight: 500;
   color: var(--muted);
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--hairline-strong);
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--hairline);
   white-space: nowrap;
 }
 
 table.data td {
-  padding: 12px 14px;
+  padding: 14px 16px;
   border-bottom: 1px solid var(--hairline);
-  vertical-align: top;
+  vertical-align: baseline;
+  font-variant-numeric: tabular-nums;
 }
 
 table.data tr:last-child td {
@@ -304,111 +397,108 @@ table.data th.num {
 
 table.data.mini th,
 table.data.mini td {
-  padding: 6px 10px;
+  padding: 7px 12px;
   font-size: 12.5px;
 }
 
-/* ---------- Chips ---------- */
+/* ---------- Stamps (status chips) ---------- */
 
 .chip {
   display: inline-block;
-  font-size: 11px;
-  letter-spacing: 0.05em;
+  font-family: var(--sans);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  border-radius: 999px;
-  padding: 2px 10px;
-  border: 1px solid var(--hairline-strong);
-  color: var(--ink-soft);
-  background: var(--paper);
+  border: 1.5px solid currentColor;
+  border-radius: 2px;
+  padding: 2px 9px 1px;
+  background: transparent;
   white-space: nowrap;
+  transform: rotate(-2deg);
+  color: var(--muted);
 }
 
 .chip.ok {
-  color: var(--positive);
-  border-color: #c4d6c3;
-  background: #f0f5ee;
+  color: var(--sage);
 }
 
 .chip.pending {
-  color: var(--pending);
-  border-color: #e0d2a8;
-  background: #faf5e4;
+  color: var(--ochre);
 }
 
 .chip.bad {
-  color: var(--negative);
-  border-color: #e0bdb3;
-  background: #f9efec;
+  color: var(--muted);
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
 }
 
 .type-label {
-  font-size: 13px;
+  font-size: 13.5px;
 }
 .type-label.redemption {
   color: var(--negative);
 }
 .type-label.subscription {
-  color: var(--positive);
+  color: var(--sage);
 }
 
 /* ---------- Documents ---------- */
 
 .doc-group {
-  margin-bottom: 40px;
+  margin-bottom: 44px;
 }
 
 .doc-group h2 {
   font-family: var(--serif);
   font-weight: 400;
-  font-size: 19px;
+  font-size: 20px;
   margin: 0 0 12px;
 }
 
 .download-link {
-  font-size: 13px;
-  color: var(--slate);
-  border: 1px solid var(--hairline-strong);
-  border-radius: 6px;
-  padding: 3px 12px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--oxblood);
+  border: 1px solid var(--hairline);
+  border-radius: 2px;
+  padding: 4px 12px;
   background: var(--card);
   white-space: nowrap;
 }
 .download-link:hover {
   text-decoration: none;
-  border-color: var(--slate-soft);
+  border-color: var(--oxblood);
 }
 
 /* ---------- News ---------- */
 
 .news-post {
-  padding: 32px 0;
-  border-bottom: 1px solid var(--hairline);
-}
-.news-post:last-child {
-  border-bottom: none;
+  padding: 8px 0 12px;
 }
 
 .news-post .meta {
-  font-size: 12px;
-  letter-spacing: 0.06em;
+  font-size: 11px;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--muted);
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   display: flex;
-  gap: 10px;
+  gap: 12px;
   align-items: center;
 }
 
 .news-post h2 {
   font-family: var(--serif);
   font-weight: 400;
-  font-size: 24px;
+  font-size: 25px;
   margin: 0 0 12px;
 }
 
 .news-body {
   max-width: 660px;
-  color: var(--ink-soft);
+  color: var(--ink);
 }
 .news-body p {
   margin: 0 0 14px;
@@ -424,9 +514,11 @@ table.data.mini td {
 .news-body code {
   font-family: var(--mono);
   font-size: 0.9em;
-  background: var(--paper-deep);
-  border-radius: 4px;
+  background: var(--paper);
+  border: 1px solid var(--hairline);
+  border-radius: 2px;
   padding: 1px 5px;
+  font-variant-numeric: tabular-nums;
 }
 .news-body ul {
   margin: 0 0 14px;
@@ -436,30 +528,36 @@ table.data.mini td {
 /* ---------- Empty / pending states ---------- */
 
 .empty-state {
-  border: 1px dashed var(--hairline-strong);
-  border-radius: 10px;
-  padding: 40px;
+  border: 1px solid var(--hairline);
+  border-radius: 3px;
+  padding: 48px 40px;
   text-align: center;
   color: var(--muted);
-  font-size: 14px;
+  font-family: var(--serif);
+  font-size: 16px;
+  font-style: italic;
   background: var(--card);
 }
 
 .pending-screen {
-  max-width: 520px;
+  max-width: 540px;
   margin: 80px auto 0;
   text-align: center;
+}
+
+.pending-screen .chip {
+  margin-bottom: 22px;
 }
 
 .pending-screen h1 {
   font-family: var(--serif);
   font-weight: 400;
-  font-size: 28px;
-  margin-bottom: 14px;
+  font-size: 30px;
+  margin: 0 0 14px;
 }
 
 .pending-screen p {
-  color: var(--ink-soft);
+  color: var(--ink);
   font-size: 15px;
 }
 
@@ -473,28 +571,38 @@ table.data.mini td {
 .transparency-hero h1 {
   font-family: var(--serif);
   font-weight: 400;
-  font-size: 36px;
+  font-size: 38px;
   line-height: 1.2;
   margin: 0 0 18px;
 }
 
 .transparency-hero p {
-  color: var(--ink-soft);
+  color: var(--ink);
   font-size: 16px;
   margin: 0 0 16px;
 }
 
-.attestation-placeholder {
-  margin-top: 48px;
-}
-
 .attestation-placeholder .slot {
-  border: 1px dashed var(--hairline-strong);
-  border-radius: 10px;
+  border: 1px solid var(--hairline);
+  border-radius: 3px;
   padding: 56px 40px;
   text-align: center;
   color: var(--muted);
+  font-family: var(--serif);
+  font-size: 16px;
+  font-style: italic;
   background: var(--card);
+}
+
+/* ---------- Auth handler chrome ---------- */
+
+.auth-shell {
+  font-family: var(--sans);
+}
+.auth-shell h1,
+.auth-shell h2 {
+  font-family: var(--serif);
+  font-weight: 400;
 }
 
 @media (max-width: 640px) {
@@ -508,7 +616,7 @@ table.data.mini td {
     width: 100%;
     gap: 16px;
   }
-  .stat-row {
-    gap: 28px;
+  .headline-figure .value {
+    font-size: 42px;
   }
 }

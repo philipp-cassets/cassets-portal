@@ -31,8 +31,8 @@ export default async function DashboardPage() {
 
       {positions.length === 0 && (
         <div className="empty-state">
-          No holdings on record yet. Subscriptions appear here once units have
-          been issued at a published NAV.
+          Nothing to report. The ledger rests. Subscriptions appear here once
+          units have been issued at a published NAV.
         </div>
       )}
 
@@ -51,23 +51,24 @@ export default async function DashboardPage() {
               </span>
             </div>
 
-            <div className="stat-row">
-              <div className="stat">
-                <div className="label">Value</div>
-                <div className="value principal">
-                  {fmtAmount(p.value, p.denomination)}
-                </div>
-                <div className="sub">as of {fmtDate(p.nav_date)}</div>
+            <div className="headline-figure">
+              <div className="label">Value</div>
+              <div className="value">{fmtAmount(p.value, p.denomination)}</div>
+              <div className="sub">as of {fmtDate(p.nav_date)}</div>
+            </div>
+
+            <div className="ledger">
+              <div className="ledger-row">
+                <span className="lbl">Units</span>
+                <span className="leader" aria-hidden="true" />
+                <span className="val">{fmtUnits(p.units)}</span>
               </div>
-              <div className="stat">
-                <div className="label">Units</div>
-                <div className="value">{fmtUnits(p.units)}</div>
-              </div>
-              <div className="stat">
-                <div className="label">NAV per unit</div>
-                <div className="value">
+              <div className="ledger-row">
+                <span className="lbl">NAV per unit</span>
+                <span className="leader" aria-hidden="true" />
+                <span className="val">
                   {fmtNav(p.nav_per_unit, p.denomination)}
-                </div>
+                </span>
               </div>
             </div>
 
@@ -102,6 +103,12 @@ export default async function DashboardPage() {
           </section>
         );
       })}
+
+      {positions.length > 0 && (
+        <div className="fleuron" aria-hidden="true">
+          ❧
+        </div>
+      )}
     </>
   );
 }

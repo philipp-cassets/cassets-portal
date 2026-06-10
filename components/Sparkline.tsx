@@ -46,12 +46,12 @@ export function Sparkline({
       <polyline
         points={points}
         fill="none"
-        stroke="#3e4c5e"
-        strokeWidth="1.5"
+        stroke="#6e1d24"
+        strokeWidth="1.25"
         strokeLinejoin="round"
         strokeLinecap="round"
       />
-      <circle cx={lastX} cy={lastY} r="2.5" fill="#3e4c5e" />
+      <circle cx={lastX} cy={lastY} r="2.25" fill="#6e1d24" />
     </svg>
   );
 }

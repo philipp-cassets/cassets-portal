@@ -24,10 +24,18 @@ export default async function NewsPage() {
       </p>
 
       {posts.length === 0 ? (
-        <div className="empty-state">No updates have been published yet.</div>
+        <div className="empty-state">
+          Nothing to report. When there is news, it will be posted here,
+          without fanfare.
+        </div>
       ) : (
-        posts.map((post) => (
+        posts.map((post, i) => (
           <article key={post.id} className="news-post">
+            {i > 0 && (
+              <div className="fleuron" aria-hidden="true">
+                ❧
+              </div>
+            )}
             <div className="meta">
               <span>{fmtDateTime(post.published_at)}</span>
               {post.cell && <span className="cell-badge">{post.cell}</span>}

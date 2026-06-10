@@ -5,7 +5,8 @@
 export function PendingActivation({ displayName }: { displayName: string }) {
   return (
     <div className="pending-screen">
-      <h1>Your account is pending activation</h1>
+      <span className="chip pending">Pending activation</span>
+      <h1>Your account awaits activation</h1>
       <p>
         Welcome, {displayName}. Your sign-in was successful, but your account
         has not yet been linked to an investor record.

@@ -16,6 +16,36 @@ export const metadata: Metadata = {
 // Every page is per-session; nothing is statically prerendered.
 export const dynamic = "force-dynamic";
 
+// Auth UI chrome themed to the house style: ivory paper, oxblood accent.
+// The portal has no dark variant, so both modes receive the same paper.
+const stackThemeColors = {
+  background: "#f6f1e7",
+  foreground: "#1c2230",
+  card: "#fcf9f2",
+  cardForeground: "#1c2230",
+  popover: "#fcf9f2",
+  popoverForeground: "#1c2230",
+  primary: "#6e1d24",
+  primaryForeground: "#fcf9f2",
+  secondary: "#dcd3bf",
+  secondaryForeground: "#1c2230",
+  muted: "#dcd3bf",
+  mutedForeground: "#6b6557",
+  accent: "#dcd3bf",
+  accentForeground: "#1c2230",
+  destructive: "#8c2b1e",
+  destructiveForeground: "#fcf9f2",
+  border: "#dcd3bf",
+  input: "#dcd3bf",
+  ring: "#6e1d24",
+};
+
+const stackTheme = {
+  light: stackThemeColors,
+  dark: stackThemeColors,
+  radius: "3px",
+};
+
 export default async function RootLayout({
   children,
 }: {
@@ -43,7 +73,7 @@ export default async function RootLayout({
     <html lang="en">
       <body>
         <StackProvider app={stackServerApp}>
-          <StackTheme>
+          <StackTheme theme={stackTheme}>
             <div className="shell">
               <Header signedIn={signedIn} cells={cells} />
               <main className="container">{children}</main>

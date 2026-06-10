@@ -7,5 +7,9 @@ import { stackServerApp } from "@/stack";
  * method in the Stack Auth dashboard.
  */
 export default function Handler(props: unknown) {
-  return <StackHandler fullPage app={stackServerApp} routeProps={props} />;
+  return (
+    <div className="auth-shell">
+      <StackHandler fullPage app={stackServerApp} routeProps={props} />
+    </div>
+  );
 }

@@ -14,7 +14,8 @@ export function AttestationSection() {
       <div className="slot">
         On-chain attestation reporting is in preparation.
         <br />
-        Published attestations will appear here.
+        When attestations are published, they will appear here, on schedule
+        and without a login.
       </div>
     </section>
   );

@@ -29,6 +29,10 @@ export default function TransparencyPage() {
         </p>
       </div>
 
+      <div className="fleuron" aria-hidden="true">
+        ※
+      </div>
+
       <AttestationSection />
     </>
   );

@@ -40,7 +40,7 @@ export default async function ActivityPage() {
       </p>
 
       {rows.length === 0 ? (
-        <div className="empty-state">No activity on record yet.</div>
+        <div className="empty-state">Nothing to report. The ledger rests.</div>
       ) : (
         <div className="card" style={{ padding: "8px 0" }}>
           <table className="data">

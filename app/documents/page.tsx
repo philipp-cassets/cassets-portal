@@ -46,7 +46,10 @@ export default async function DocumentsPage() {
       </p>
 
       {docs.length === 0 && (
-        <div className="empty-state">No documents have been published yet.</div>
+        <div className="empty-state">
+          No documents have been issued to you. When they are, they will
+          appear here, neatly filed.
+        </div>
       )}
 
       {[...groups.entries()].map(([docType, list]) => (

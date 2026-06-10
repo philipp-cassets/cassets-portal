@@ -14,8 +14,13 @@ export function Header({
   return (
     <header className="site-header">
       <div className="container inner">
-        <Link href="/" className="wordmark">
-          cAssets
+        <Link href="/" className="brand">
+          <span className="crest" aria-hidden="true">
+            <span className="crest-inner">cA</span>
+          </span>
+          <span className="wordmark">
+            <span className="wm-c">c</span>Assets
+          </span>
         </Link>
         {cells.length > 0 && (
           <div className="cell-badges">
