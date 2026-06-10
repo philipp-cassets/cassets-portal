@@ -1,6 +1,15 @@
 import { DenominationToggle } from "@/components/DenominationToggle";
+import { IcoBell, IcoChevron } from "@/components/icons";
 
-/** "Wed, 10 June" for the date pill, fixed locale, no client clock. */
+/** "Jun 1 – Jun 10, 2026": the current statement period, month-to-date. */
+function periodLabel(): string {
+  const now = new Date();
+  const mon = now.toLocaleDateString("en-US", { month: "short" });
+  const year = now.getFullYear();
+  return `${mon} 1 – ${mon} ${now.getDate()}, ${year}`;
+}
+
+/** "Wed, 10 June" for the notification pill. */
 function todayLabel(): string {
   const now = new Date();
   const wd = now.toLocaleDateString("en-GB", { weekday: "short" });
@@ -16,51 +25,74 @@ function monogram(name: string): string {
 }
 
 /**
- * Sticky blurred header on the main canvas. Left: investor identity
- * (monogram avatar, sage pill, name). Right: the portal-wide denomination
- * toggle, the headline control of the page, plus a quiet date pill.
- * Server-rendered; only the toggle is a client island.
+ * Portal header on the canvas, per the handoff: greige avatar circle,
+ * investor code line with a flat pill, name at 21px/600; on the right the
+ * USD/NEAR denomination toggle, a white date pill and a white notification
+ * pill with sage unread dot and dark count chip.
  */
 export function PortalHeader({
   signedIn,
   displayName,
+  activated,
+  notifCount,
 }: {
   signedIn: boolean;
   displayName: string | null;
+  activated: boolean;
+  notifCount: number;
 }) {
   return (
-    <header className="topbar">
-      <div className="container topbar-inner">
-        <div className="topbar-id">
-          {signedIn && displayName ? (
-            <>
-              <div className="avatar" aria-hidden="true">
-                {monogram(displayName)}
-              </div>
-              <div style={{ minWidth: 0 }}>
-                <div className="topbar-line1">
-                  <span>cAssets AMC · Jersey</span>
-                  <span className="pill pill-xs">Signed in</span>
-                </div>
-                <div className="topbar-name">{displayName}</div>
-              </div>
-            </>
-          ) : (
-            <div>
-              <div className="topbar-line1">cAssets AMC · Jersey</div>
-              <div className="topbar-name">Investor Portal</div>
+    <header className="header">
+      <div className="hl">
+        {signedIn && displayName ? (
+          <>
+            <div className="avatar" aria-hidden="true">
+              {monogram(displayName)}
             </div>
-          )}
+            <div>
+              <div className="l1">
+                <span className="code">cAssets AMC · Jersey</span>
+                <span className="pill-flat">
+                  {activated ? "VERIFIED" : "PENDING"}
+                </span>
+              </div>
+              <div className="l2">{displayName}</div>
+            </div>
+          </>
+        ) : (
+          <div>
+            <div className="l1">
+              <span className="code">cAssets AMC · Jersey</span>
+            </div>
+            <div className="l2">Investor Portal</div>
+          </div>
+        )}
+      </div>
+
+      <div className="hr">
+        <DenominationToggle />
+
+        <div className="card-pill date">
+          <span>{periodLabel()}</span>
+          <IcoChevron size={14} />
         </div>
-        <div className="topbar-right">
-          <DenominationToggle />
-          <span className="date-pill">{todayLabel()}</span>
-          {!signedIn && (
-            <a className="signin-link" href="/handler/sign-in">
-              Investor sign in
-            </a>
-          )}
-        </div>
+
+        {signedIn ? (
+          <div className="card-pill notif">
+            <span className="bell-wrap">
+              <IcoBell size={18} />
+              {notifCount > 0 && <span className="bell-dot" />}
+            </span>
+            <span>{todayLabel()}</span>
+            {notifCount > 0 && (
+              <span className="notif-badge tnum">{notifCount}</span>
+            )}
+          </div>
+        ) : (
+          <a className="signin-link" href="/handler/sign-in">
+            Investor sign in
+          </a>
+        )}
       </div>
     </header>
   );

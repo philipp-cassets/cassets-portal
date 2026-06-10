@@ -262,11 +262,11 @@ export function RedemptionDialog({
                   </button>
                   <button
                     type="button"
-                    className="primary-button"
+                    className="confirm-button"
                     onClick={submit}
                     disabled={busy}
                   >
-                    {busy ? "Lodging..." : "Lodge request"}
+                    {busy ? "Lodging…" : "Confirm · Lodge request"}
                   </button>
                 </div>
               </>

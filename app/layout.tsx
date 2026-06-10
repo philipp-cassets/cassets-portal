@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import { Inter_Tight } from "next/font/google";
+import { Inter_Tight, IBM_Plex_Mono } from "next/font/google";
 import { StackProvider, StackTheme } from "@stackframe/stack";
 import { stackServerApp } from "@/stack";
-import { getOptionalUser } from "@/lib/auth";
+import { getOptionalUser, getInvestorIdForAuthUser } from "@/lib/auth";
+import { getNews, getPositions } from "@/lib/data";
 import { isPreview } from "@/lib/preview";
 import { Sidebar } from "@/components/Sidebar";
 import { PortalHeader } from "@/components/PortalHeader";
@@ -11,14 +12,22 @@ import "./globals.css";
 
 const interTight = Inter_Tight({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
   variable: "--font-inter-tight",
   display: "swap",
   fallback: ["system-ui", "-apple-system", "Helvetica Neue", "Arial", "sans-serif"],
 });
 
+// IBM Plex Mono: code-like artifacts only (refs, filenames).
+const plexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-plex-mono",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
-  title: "cAssets · Investor Portal",
+  title: "cNEAR · Investor Portal",
   description:
     "Investor portal for the cAssets AMC, Jersey. For investors only.",
 };
@@ -27,111 +36,110 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 // Auth UI chrome themed to the Analitica language: warm paper, ink,
-// sage-olive primary, hairline borders in light; the same voice on warm
-// charcoal in dark. Both sets mirror the palettes in globals.css.
+// sage-olive primary, hairline borders. The handoff has no dark mode, so
+// both Stack slots receive the light palette.
 const stackLightColors = {
-  background: "#f2f1ee",
-  foreground: "#16140f",
+  background: "#F2F2F0",
+  foreground: "#05050C",
   card: "#ffffff",
-  cardForeground: "#16140f",
+  cardForeground: "#05050C",
   popover: "#ffffff",
-  popoverForeground: "#16140f",
-  primary: "#3f4430",
-  primaryForeground: "#f2f1ee",
+  popoverForeground: "#05050C",
+  primary: "#3A3E2A",
+  primaryForeground: "#F2F2F0",
   secondary: "#e4e2db",
-  secondaryForeground: "#16140f",
+  secondaryForeground: "#05050C",
   muted: "#e4e2db",
   mutedForeground: "#73706a",
   accent: "#e0e1d3",
-  accentForeground: "#3f4430",
-  destructive: "#9c4a33",
-  destructiveForeground: "#f2f1ee",
+  accentForeground: "#3A3E2A",
+  destructive: "#9C4A33",
+  destructiveForeground: "#F2F2F0",
   border: "#e0ded7",
   input: "#e0ded7",
-  ring: "#3f4430",
-};
-
-const stackDarkColors = {
-  background: "#191713",
-  foreground: "#eae6dc",
-  card: "#211e18",
-  cardForeground: "#eae6dc",
-  popover: "#211e18",
-  popoverForeground: "#eae6dc",
-  primary: "#c9cea9",
-  primaryForeground: "#191713",
-  secondary: "#2b2823",
-  secondaryForeground: "#eae6dc",
-  muted: "#2b2823",
-  mutedForeground: "#979388",
-  accent: "#34372a",
-  accentForeground: "#c9cea9",
-  destructive: "#c97e66",
-  destructiveForeground: "#191713",
-  border: "#2e2b25",
-  input: "#2e2b25",
-  ring: "#c9cea9",
+  ring: "#3A3E2A",
 };
 
 const stackTheme = {
   light: stackLightColors,
-  dark: stackDarkColors,
+  dark: stackLightColors,
   radius: "12px",
 };
 
-// Restores the persisted theme and denomination choices before first paint
-// so there is no flash. Runs as the first node in <body>. The key is
-// versioned (cassets-theme-v2) so stale "dark" preferences from the old
-// design do not apply; absent or invalid storage means light, the
-// canonical default, and the USD default denomination.
-const themeInitScript = `try{var t=localStorage.getItem("cassets-theme-v2");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t;var d=localStorage.getItem("cassets-denom");if(d==="USD"||d==="NEAR")document.documentElement.dataset.denom=d}catch(e){}`;
-
-// PREVIEW-ONLY: lets the screenshot loop verify dark mode via ?theme=dark.
-// Appended to the init script only when PORTAL_PREVIEW=1, never in a
-// deployed environment.
-const previewThemeScript = `try{var q=new URLSearchParams(location.search).get("theme");if(q==="dark"||q==="light")document.documentElement.dataset.theme=q}catch(e){}`;
+// Restores the persisted denomination before first paint (no flash), and
+// removes the one-shot entrance-cascade class after it has played, exactly
+// like the handoff prototype (2800ms). Light is the only theme.
+const initScript = `try{var d=localStorage.getItem("cassets-denom");if(d==="USD"||d==="NEAR")document.documentElement.dataset.denom=d}catch(e){}setTimeout(function(){document.body.classList.remove("entering")},2800);`;
 
 export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // Shell chrome only: resolve the signed-in user (if any).
-  // Failures here must never take the whole shell down.
+  // Shell chrome only: resolve the signed-in user (if any) and a quiet
+  // notification count (published news visible to this investor in the
+  // last 30 days). Failures here must never take the whole shell down.
   let signedIn = false;
   let displayName: string | null = null;
+  let activated = false;
+  let notifCount = 0;
   try {
     const user = await getOptionalUser();
     if (user) {
       signedIn = true;
       displayName = user.displayName;
+      const investorId = await getInvestorIdForAuthUser(user.authUserId);
+      if (investorId) {
+        activated = true;
+        const positions = await getPositions(investorId);
+        const cells = [...new Set(positions.map((p) => p.cell))];
+        const posts = await getNews(cells);
+        const cutoff = Date.now() - 30 * 86400000;
+        notifCount = posts.filter(
+          (p) => new Date(p.published_at).getTime() >= cutoff
+        ).length;
+      }
     }
   } catch {
     // Render the shell regardless; pages enforce their own guards.
   }
 
+  const shell = (
+    <div className="shell">
+      <Sidebar signedIn={signedIn} displayName={displayName} />
+      <main className="canvas">
+        <div className="content">
+          <PortalHeader
+            signedIn={signedIn}
+            displayName={displayName}
+            activated={activated}
+            notifCount={notifCount}
+          />
+          {children}
+          <Footer />
+        </div>
+      </main>
+      <div className="stone" aria-hidden="true" />
+    </div>
+  );
+
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${interTight.className} ${interTight.variable}`}>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: isPreview()
-              ? themeInitScript + previewThemeScript
-              : themeInitScript,
-          }}
-        />
-        <StackProvider app={stackServerApp}>
-          <StackTheme theme={stackTheme}>
-            <div className="shell">
-              <Sidebar signedIn={signedIn} displayName={displayName} />
-              <div className="canvas">
-                <PortalHeader signedIn={signedIn} displayName={displayName} />
-                <main className="container">{children}</main>
-                <Footer />
-              </div>
-            </div>
-          </StackTheme>
-        </StackProvider>
+      <body
+        className={`${interTight.className} ${interTight.variable} ${plexMono.variable} entering`}
+        suppressHydrationWarning
+      >
+        <script dangerouslySetInnerHTML={{ __html: initScript }} />
+        {isPreview() ? (
+          // PREVIEW-ONLY: no Stack client with fixture credentials, so the
+          // screenshot loop stays free of auth noise. Deployed environments
+          // always mount the provider.
+          shell
+        ) : (
+          <StackProvider app={stackServerApp}>
+            <StackTheme theme={stackTheme}>{shell}</StackTheme>
+          </StackProvider>
+        )}
       </body>
     </html>
   );

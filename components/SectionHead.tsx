@@ -1,15 +1,16 @@
+import { IcoStar4 } from "@/components/icons";
+
 /**
- * Section head in the Analitica voice: a thin grey label row with a small
- * four-point star glyph, like the target's "Capital under control" eyebrow.
- * No ghost page numbers - those belonged to the previous design.
+ * Section head in the handoff's eyebrow voice: a small glyph at 35% black
+ * next to a 19px/500 muted title, exactly like the dashboard KPI eyebrow.
  */
 export function SectionHead({ title }: { title: string }) {
   return (
     <div className="section-head">
-      <span className="section-glyph" aria-hidden="true">
-        &#10022;
+      <span className="ico" aria-hidden="true">
+        <IcoStar4 size={16} />
       </span>
-      <span className="section-title">{title}</span>
+      <span className="t">{title}</span>
     </div>
   );
 }

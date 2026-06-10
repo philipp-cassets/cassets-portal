@@ -123,26 +123,26 @@ export default async function ActivityPage() {
         <div className="empty-state fade-2">Nothing to report. The ledger rests.</div>
       ) : (
         <>
-          <div className="ledger-fade fade-2">
-            <div className="ledger">
+          <div className="fade-2">
+            <div className="act-ledger">
               {days.map((day) => (
-                <div className="led-day" key={day.date}>
-                  <div className="led-day-head">{dayHeader(day.date)}</div>
+                <div className="act-day" key={day.date}>
+                  <div className="act-day-head">{dayHeader(day.date)}</div>
                   {day.rows.map((r) => {
                     const denom = rowDenomination(r, classDenom);
                     const dead = DEAD.has(r.status.toLowerCase());
                     const outflow = r.type === "redemption";
                     const gross = grossValue(r, denom);
                     return (
-                      <div className={`led-row${dead ? " void" : ""}`} key={r.ref}>
-                        <div className="led-main">
+                      <div className={`act-row${dead ? " void" : ""}`} key={r.ref}>
+                        <div className="act-main">
                           <div>
-                            <div className="led-type">
+                            <div className="act-type">
                               {r.type === "subscription" ? "Subscription" : "Redemption"}
                             </div>
-                            <div className="led-ref">{r.ref}</div>
+                            <div className="act-ref mono">{r.ref}</div>
                           </div>
-                          <div className="led-amounts">
+                          <div className="act-amounts">
                             {r.amount_usd != null && (
                               <span className={`denom-usd${outflow ? " out" : ""}`}>
                                 {outflow ? "−" : ""}
@@ -165,8 +165,8 @@ export default async function ActivityPage() {
                               )}
                           </div>
                         </div>
-                        <div className="led-meta">
-                          <div className="led-detail">
+                        <div className="act-meta">
+                          <div className="act-detail">
                             Class {r.share_class}
                             <span className="sep">·</span>
                             {r.units != null ? (
@@ -204,9 +204,6 @@ export default async function ActivityPage() {
                   })}
                 </div>
               ))}
-            </div>
-            <div className="ledger-end" aria-hidden="true">
-              <span className="star">&#10022;</span> Scroll to explore
             </div>
           </div>
 
@@ -250,18 +247,18 @@ export default async function ActivityPage() {
       ) : (
         <div className="requests-block fade-4">
           {openRequests.map((q) => (
-            <div className="led-row" key={q.id}>
-              <div className="led-main">
+            <div className="act-row" key={q.id}>
+              <div className="act-main">
                 <div>
-                  <div className="led-type">Redemption request</div>
-                  <div className="led-ref">{q.ref}</div>
+                  <div className="act-type">Redemption request</div>
+                  <div className="act-ref mono">{q.ref}</div>
                 </div>
-                <div className="led-amounts">
+                <div className="act-amounts">
                   <span>{fmtUnits(q.units)} units</span>
                 </div>
               </div>
-              <div className="led-meta">
-                <div className="led-detail">
+              <div className="act-meta">
+                <div className="act-detail">
                   Class {q.share_class}
                   <span className="sep">·</span>
                   Requested {fmtDate(q.requested_at)}

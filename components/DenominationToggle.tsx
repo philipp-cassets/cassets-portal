@@ -52,19 +52,19 @@ export function DenominationToggle() {
   const isNear = denom === "NEAR";
 
   return (
-    <button
-      type="button"
-      className="denom-toggle"
-      onClick={flip}
-      role="switch"
-      aria-checked={isNear}
-      aria-label="Denomination: foreground USD or NEAR figures. Figures are never converted."
-    >
-      <span className={`dt-label${!isNear ? " active" : ""}`}>USD</span>
-      <span className={`dt-track${isNear ? " on" : ""}`} aria-hidden="true">
-        <span className="dt-knob" />
-      </span>
-      <span className={`dt-label${isNear ? " active" : ""}`}>NEAR</span>
-    </button>
+    <div className="denom">
+      <span className={`dl ${!isNear ? "on" : "off"}`}>USD</span>
+      <button
+        type="button"
+        className={`track${isNear ? " near" : ""}`}
+        onClick={flip}
+        role="switch"
+        aria-checked={isNear}
+        aria-label="Denomination: foreground USD or NEAR figures. Figures are never converted."
+      >
+        <span className="knob" />
+      </button>
+      <span className={`dl ${isNear ? "on" : "off"}`}>NEAR</span>
+    </div>
   );
 }
