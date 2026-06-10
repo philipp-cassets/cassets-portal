@@ -125,6 +125,7 @@
     user-select: none;
   }
   .nav-item:hover { background: rgba(255,255,255,0.07); }
+  .nav-item.active { background: rgba(255,255,255,0.10); }
   .nav-item .ico { flex: 0 0 18px; width: 18px; height: 18px; color: rgba(255,255,255,0.90); display: flex; align-items: center; justify-content: center; }
   .nav-item .lbl { flex: 1; font-size: 15.5px; font-weight: 500; white-space: nowrap; overflow: hidden; }
   .nav-item .cnt {
@@ -148,6 +149,7 @@
     white-space: nowrap;
   }
   .nav-child:hover { background: rgba(255,255,255,0.07); }
+  .nav-child.active { background: rgba(255,255,255,0.10); color: rgba(255,255,255,0.95); }
   .nav-child .ckbadge {
     margin-left: auto; min-width: 24px; height: 19px; padding: 0 6px; border-radius: 6px;
     background: rgba(255,255,255,0.22); color: #fff; font-size: 11px; font-weight: 600;
@@ -164,6 +166,22 @@
   }
   .nav-children.ticks::before { left: 0; }
   .sidebar.collapsed .nav-children { display: none; }
+
+  /* DELTA-LOCAL §5: collapsed-rail hover tooltips + active clue (portal build) */
+  .sidebar.collapsed .nav-item { position: relative; }
+  .sidebar.collapsed .nav-item.active::before {
+    content: ""; position: absolute; left: -14px; top: 50%; margin-top: -10px;
+    width: 2px; height: 20px; border-radius: 1px; background: var(--w92);
+  }
+  .sidebar > .sb-tip, .sb-tip {
+    position: fixed; z-index: 30; background: #fff; border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 8px; padding: 6px 12px; transform: translateY(-50%);
+    font-size: 13px; font-weight: 500; color: var(--ink); white-space: nowrap;
+    animation: tipIn 150ms var(--ease) both;
+  }
+  .sb-tip .tt-child { font-size: 12.5px; font-weight: 400; color: var(--muted45); padding: 4px 0; cursor: pointer; transition: color 150ms ease; }
+  .sb-tip .tt-child:hover { color: var(--ink); }
+  @keyframes tipIn { from { opacity: 0; transform: translateY(-50%) translateX(-4px); } to { opacity: 1; transform: translateY(-50%) translateX(0); } }
 
   /* ================= MAIN CANVAS ================= */
   .canvas {
@@ -314,6 +332,70 @@
   .led-row .amt { font-size: 15px; font-weight: 600; color: var(--ink); }
   .led-row .amt.out { color: var(--muted45); }
 
+  /* ---------- Secondary screens ---------- */
+  .pt-head { margin-top: 44px; }
+  .entering .pt-head { animation: fadeUp 0.6s ease 0.15s both; }
+  .pt-title { font-size: 34px; font-weight: 600; letter-spacing: -1px; color: var(--ink); }
+  .pt-sub { font-size: 15px; color: var(--muted45); margin-top: 6px; }
+  .pt-tbl { margin-top: 28px; }
+  .entering .pt-tbl { animation: fadeUp 0.6s ease 0.3s both; }
+  .pt-th, .pt-tr { display: grid; align-items: center; column-gap: 20px; }
+  .pt-th {
+    height: 38px; font-size: 11.5px; font-weight: 600; letter-spacing: 1px; color: var(--muted45);
+    text-transform: uppercase; border-bottom: 1px solid var(--hair);
+  }
+  .pt-tr { min-height: 52px; border-bottom: 1px solid var(--hair); font-size: 15px; }
+  .pt-tr > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pt-tr .num { text-align: right; font-weight: 500; }
+  .pt-tr .dim { color: var(--muted45); }
+  .pt-tr .out { color: var(--muted45); }
+  .pt-tr .mono { font-family: ui-monospace, monospace; font-size: 13px; color: rgba(0,0,0,0.6); }
+  .pt-caps { font-size: 11px; font-weight: 600; letter-spacing: 1px; color: var(--muted45); }
+  .pt-caps.ok { color: #3A3E2A; }
+  .sage-txt { color: #3A3E2A; font-weight: 600; }
+  .pt-note { font-size: 13px; color: var(--muted45); margin-top: 16px; }
+  .pt-file {
+    width: 34px; height: 34px; border-radius: 9px; border: 1px solid var(--hair);
+    display: inline-flex; align-items: center; justify-content: center; color: var(--ink);
+  }
+  .pt-quiet {
+    background: none; border: none; font-family: inherit; font-size: 14px; font-weight: 500;
+    color: var(--muted45); cursor: pointer; padding: 6px 10px; border-radius: 8px;
+    transition: color 200ms ease, background 200ms ease;
+  }
+  .pt-quiet:hover { color: var(--ink); background: rgba(0,0,0,0.04); }
+  .pt-form { display: flex; align-items: flex-end; gap: 28px; padding: 24px 0; border-bottom: 1px solid var(--hair); flex-wrap: wrap; }
+  .pt-f { display: flex; flex-direction: column; gap: 6px; }
+  .pt-f label { font-size: 11px; font-weight: 600; letter-spacing: 1.2px; color: var(--muted45); }
+  .pt-f input, .pt-f select {
+    border: none; border-bottom: 1px solid rgba(0,0,0,0.18); background: transparent; outline: none;
+    font-family: inherit; font-size: 15px; padding: 5px 2px; width: 150px; font-variant-numeric: tabular-nums;
+  }
+  .pt-btn {
+    height: 38px; padding: 0 22px; border-radius: 9999px; border: none; background: var(--ink);
+    color: #fff; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+  }
+  .pt-btn.ok { background: rgba(148,153,113,0.35); color: #3A3E2A; }
+
+  /* ---------- Header dropdowns ---------- */
+  .hr .dd-anchor { position: relative; }
+  .dd-veil { position: fixed; inset: 0; z-index: 24; }
+  .dd-panel {
+    position: absolute; top: calc(100% + 10px); right: 0; z-index: 25; min-width: 300px;
+    background: #fff; border: 1px solid var(--hair); border-radius: 14px; padding: 8px;
+    animation: fadeUp 0.18s ease both;
+  }
+  .dd-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: 10px 12px; border-radius: 9px; font-size: 14px; cursor: pointer;
+    transition: background 150ms ease;
+  }
+  .dd-row:hover { background: rgba(0,0,0,0.04); }
+  .dd-row .d { font-size: 12px; color: var(--muted45); }
+  .dd-row.unread { font-weight: 500; }
+  .dd-row .udot { width: 6px; height: 6px; border-radius: 50%; background: #949971; flex: 0 0 6px; }
+  .dd-foot { display: flex; justify-content: flex-end; padding: 6px 6px 2px; }
+
   /* ---------- Scroll indicator ---------- */
   .scroll-ind {
     position: fixed; bottom: 24px; left: calc(50% + 204px); transform: translateX(-50%);
@@ -368,6 +450,7 @@
 <script type="text/babel" src="/portal-ui/icons.jsx"></script>
 <script type="text/babel" src="/portal-ui/components.jsx"></script>
 <script type="text/babel" src="/portal-ui/dashboard.jsx"></script>
+<script type="text/babel" src="/portal-ui/screens.jsx"></script>
 <script type="text/babel" src="/portal-ui/app.jsx"></script>
 </body>
 </html>

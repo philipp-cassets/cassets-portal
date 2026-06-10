@@ -116,6 +116,35 @@ export async function getRedemptionRequests(
   );
 }
 
+export type SubscriptionRequestRow = {
+  investor_id: string;
+  id: string;
+  ref: string;
+  cell: string;
+  share_class: string;
+  /** Exactly one of amount_usd / amount_near is set — the class denomination. */
+  amount_usd: string | null;
+  amount_near: string | null;
+  status: string;
+  requested_at: string;
+  note: string | null;
+};
+
+/** Desk-side migration 013: subscription_requests + v_portal_subscription_requests. */
+export async function getSubscriptionRequests(
+  investorId: string
+): Promise<SubscriptionRequestRow[]> {
+  if (isPreview()) return previewData.subscriptionRequests;
+  return query<SubscriptionRequestRow>(
+    `SELECT investor_id, id, ref, cell, share_class, amount_usd, amount_near,
+            status, requested_at, note
+       FROM cassets.v_portal_subscription_requests
+      WHERE investor_id = $1
+      ORDER BY requested_at DESC`,
+    [investorId]
+  );
+}
+
 export type NavRow = {
   cell: string;
   share_class: string;

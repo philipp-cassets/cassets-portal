@@ -11,6 +11,7 @@ import {
   getDocuments,
   getNews,
   getRedemptionRequests,
+  getSubscriptionRequests,
   type NavRow,
   type PositionRow,
   type ActivityRow,
@@ -31,6 +32,23 @@ import {
  * are { USD: {v, unit}, NEAR: {v, unit} }; when a figure exists in only one
  * real denomination, that value+unit is carried under both keys so the other
  * mode renders it unchanged with its own suffix.
+ *
+ * MOCK-FED INVENTORY (v2 surfaces; everything else is real):
+ *  - segments / dashboard barcode epoch labels: strategy allocation
+ *    (Covered Calls / Staking / Unencumbered) has no portal view.
+ *  - My Positions sleeve rows: same gap (mock lives in screens.jsx, tagged).
+ *  - Subscriptions & Redemptions → Distributions: no distributions surface.
+ *  - On-chain Transparency (all four tabs): REAL data exists desk-side but
+ *    venues/balances are not granted to cassets_portal; needs a DESK-SIDE
+ *    migration adding a curated aggregate-safe view (v_portal_transparency)
+ *    before this can be bridged. Until then prototype values stay.
+ *  - Notification backend: source rows are REAL (published news 30d +
+ *    document publications) but persistent read-state and event types are
+ *    absent; read-state is client-side localStorage only.
+ *  - Dashboard sidebar badge "2" (components.jsx NAV): decorative prototype
+ *    count, no backing figure.
+ *  - Statement file sizes: v_portal_documents exposes no byte size; the
+ *    column shows the file kind ("PDF") instead.
  */
 
 export const dynamic = "force-dynamic";
@@ -69,6 +87,23 @@ function todayLabel(now: Date): string {
   const wd = now.toLocaleDateString("en-GB", { weekday: "short" });
   const day = now.toLocaleDateString("en-GB", { day: "numeric", month: "long" });
   return `${wd}, ${day}`;
+}
+
+/** "Jun 8, 2026" short date from an ISO date or timestamp string. */
+function fmtShort(iso: string | null): string {
+  if (!iso) return "—";
+  const d = new Date(iso.length <= 10 ? `${iso}T00:00:00Z` : iso);
+  if (Number.isNaN(d.getTime())) return String(iso);
+  const mon = d.toLocaleDateString("en-US", { month: "short", timeZone: "UTC" });
+  return `${mon} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
+}
+
+/** "Jun 8" compact date for notification rows. */
+function fmtDay(iso: string): string {
+  const d = new Date(iso.length <= 10 ? `${iso}T00:00:00Z` : iso);
+  if (Number.isNaN(d.getTime())) return String(iso);
+  const mon = d.toLocaleDateString("en-US", { month: "short", timeZone: "UTC" });
+  return `${mon} ${d.getUTCDate()}`;
 }
 
 /** "MONDAY, JUN 8 2026" ghost-ledger day header (prototype format). */
@@ -151,12 +186,13 @@ export async function GET() {
   const cells = [...new Set(positions.map((p) => p.cell))];
 
   const histories = new Map<string, NavRow[]>();
-  const [cellStats, activity, documents, news, redemptionRequests] = await Promise.all([
+  const [cellStats, activity, documents, news, redemptionRequests, subscriptionRequests] = await Promise.all([
     cells.length > 0 ? getCellStats(cells) : Promise.resolve([]),
     getActivity(investorId),
     getDocuments(investorId),
     getNews(cells),
     getRedemptionRequests(investorId),
+    getSubscriptionRequests(investorId),
     ...positions.map(async (p) => {
       // 420 = the prototype barcode's stroke capacity (MAX_STROKES)
       histories.set(`${p.cell}::${p.share_class}`, await getNavHistory(p.cell, p.share_class, 420));
@@ -287,11 +323,181 @@ export async function GET() {
     }),
   }));
 
-  const notifCutoff = now.getTime() - 30 * 86400000;
-  const notifCount = news.filter((p) => new Date(p.published_at).getTime() >= notifCutoff).length;
-
   const histUSD = histOf(primary.USD);
   const histNEAR = histOf(primary.NEAR);
+
+  const ts = (iso: string) =>
+    new Date(iso.length <= 10 ? `${iso}T00:00:00Z` : iso).getTime();
+
+  // --- NAV & Performance weekly table (REAL) -------------------------------
+  // v_portal_nav strikes for the primary class per denomination, sampled to
+  // weekly rows. Fund AUM = units in issue for the class (v_portal_cell_stats,
+  // current figure) × that week's NAV/unit — expressed in the class's OWN
+  // denomination, never merged or converted.
+  const navTableOf = (d: Denom) => {
+    const p = primary[d];
+    const hist = histOf(p);
+    const stat = p ? statFor(p.cell, p.share_class) : undefined;
+    const units = stat ? Number(stat.units_outstanding) : NaN;
+    const picked: NavRow[] = [];
+    let lastT = Infinity;
+    for (let i = hist.length - 1; i >= 0 && picked.length < 26; i--) {
+      const t = ts(hist[i].nav_date);
+      if (picked.length === 0 || lastT - t >= 7 * 86400000) {
+        picked.push(hist[i]);
+        lastT = t;
+      }
+    }
+    const unit: Denom = p?.denomination ?? d;
+    const rows = picked.map((r, i) => {
+      const nav = Number(r.nav_per_unit);
+      const older = picked[i + 1];
+      const chg = older ? pctStr(nav / Number(older.nav_per_unit) - 1) : null;
+      return {
+        date: fmtShort(r.nav_date),
+        unitStr: unit === "NEAR" ? `${nav.toFixed(4)} NEAR` : `$ ${nav.toFixed(4)}`,
+        aum: { v: Number.isFinite(units) ? units * nav : 0, unit },
+        chg: chg ?? "—",
+      };
+    });
+    return { classLabel: p ? `Class ${p.share_class}` : "—", rows };
+  };
+  const ntUSD = navTableOf("USD");
+  const ntNEAR = navTableOf("NEAR");
+  // Same fallback rule as navSeries: a denomination with no real class shows
+  // the other class's figures unchanged, in THEIR denomination (no conversion).
+  const navTable = {
+    USD: ntUSD.rows.length ? ntUSD : ntNEAR,
+    NEAR: ntNEAR.rows.length ? ntNEAR : ntUSD,
+  };
+
+  // --- Pending orders (REAL) ------------------------------------------------
+  // v_portal_subscription_requests + v_portal_redemption_requests (status
+  // requested → UNDER REVIEW, approved → APPROVED) plus v_portal_activity
+  // rows still pending the NAV strike (status pending → AWAITING NAV).
+  // Amounts carry their OWN unit: class denomination for subscriptions,
+  // units for redemption requests — never converted.
+  const reqState = (s: string) => (s === "approved" ? "APPROVED" : "UNDER REVIEW");
+  const activityAmount = (r: ActivityRow) => {
+    const sign = r.type === "redemption" ? -1 : 1;
+    if (r.amount_near != null) return { v: sign * Math.abs(Number(r.amount_near)), unit: "NEAR" };
+    if (r.amount_usd != null) return { v: sign * Math.abs(Number(r.amount_usd)), unit: "USD" };
+    return { v: sign * Math.abs(Number(r.units ?? 0)), unit: "units" };
+  };
+  const pendingRows = [
+    ...subscriptionRequests
+      .filter((r) => r.status === "requested" || r.status === "approved")
+      .map((r) => ({
+        ref: r.ref,
+        kind: "Subscription",
+        cls: r.share_class,
+        amount:
+          r.amount_near != null
+            ? { v: Number(r.amount_near), unit: "NEAR" }
+            : { v: Number(r.amount_usd ?? 0), unit: "USD" },
+        placed: fmtShort(r.requested_at),
+        state: reqState(r.status),
+        _t: ts(r.requested_at),
+      })),
+    ...redemptionRequests
+      .filter((r) => r.status === "requested" || r.status === "approved")
+      .map((r) => ({
+        ref: r.ref,
+        kind: "Redemption",
+        cls: r.share_class,
+        amount: { v: -Math.abs(Number(r.units)), unit: "units" },
+        placed: fmtShort(r.requested_at),
+        state: reqState(r.status),
+        _t: ts(r.requested_at),
+      })),
+    ...activity
+      .filter((r) => r.status === "pending")
+      .map((r) => ({
+        ref: r.ref,
+        kind: r.type === "subscription" ? "Subscription" : "Redemption",
+        cls: r.share_class,
+        amount: activityAmount(r),
+        placed: fmtShort(r.trade_date),
+        state: "AWAITING NAV",
+        _t: ts(r.trade_date),
+      })),
+  ].sort((a, b) => b._t - a._t);
+  const ordersPending = pendingRows.map(({ _t: _drop, ...o }) => o);
+
+  // --- Settled history (REAL): v_portal_activity settled rows with strike ---
+  const ordersSettled = activity
+    .filter((r) => r.status === "settled" && r.nav_per_unit != null)
+    .map((r) => ({
+      ref: r.ref,
+      kind: r.type === "subscription" ? "Subscription" : "Redemption",
+      cls: r.share_class,
+      amount: activityAmount(r),
+      settled: fmtShort(r.settled_at ?? r.trade_date),
+      unitStr: Number(r.nav_per_unit).toFixed(4),
+    }));
+
+  // New-order form: the class select fixes the denomination (house rule —
+  // an order amount exists in exactly one denomination).
+  const orderClasses = positions.map((p) => ({
+    cell: p.cell,
+    cls: p.share_class,
+    denom: p.denomination,
+  }));
+
+  // --- Statements (REAL): v_portal_documents via the ownership-checked
+  // download route. Confirmations / tax reports are real queries that return
+  // no rows today — the screen shows the honest empty state. The view does
+  // not expose a file size; the column shows the file kind instead.
+  const docRow = (d: (typeof documents)[number]) => ({
+    id: d.id,
+    name: d.filename,
+    date: fmtShort(d.period_end ?? d.period_start),
+    size: "PDF",
+    url: `/documents/${d.id}/download`,
+  });
+  const docs = {
+    statements: documents.filter((d) => d.doc_type === "statement").map(docRow),
+    confirmations: documents.filter((d) => d.doc_type === "confirmation").map(docRow),
+    tax: documents
+      .filter((d) => d.doc_type === "tax_report" || d.doc_type === "tax")
+      .map(docRow),
+  };
+
+  // --- Notifications (REAL source, no backend read-state) ------------------
+  // Published news (30d) + recent document publications as notification rows;
+  // read-state lives in localStorage client-side (see MOCK-FED INVENTORY).
+  const notifCutoff = now.getTime() - 30 * 86400000;
+  const docCutoff = now.getTime() - 45 * 86400000;
+  const notifRows = [
+    ...news
+      .filter((p) => new Date(p.published_at).getTime() >= notifCutoff)
+      .map((p) => ({
+        id: `news-${p.id}`,
+        t: p.title,
+        d: fmtDay(p.published_at),
+        _t: ts(p.published_at),
+      })),
+    ...documents
+      .filter((d) => d.doc_type === "statement" && d.period_end && ts(d.period_end) >= docCutoff)
+      .map((d) => ({
+        id: `doc-${d.id}`,
+        t: `${d.filename.replace(/\.pdf$/i, "").replace(/_/g, " ")} available`,
+        d: fmtDay(d.period_end as string),
+        _t: ts(d.period_end as string),
+      })),
+  ].sort((a, b) => b._t - a._t);
+  const notifs = notifRows.map(({ _t: _drop, ...n }) => n);
+
+  // Header date-range presets (display state; each maps to a §4 timeframe so
+  // selection also windows the real NAV series where cheap).
+  const currentPeriod = periodLabel(now);
+  const periods = [currentPeriod, `Q2 ${now.getFullYear()}`, `YTD ${now.getFullYear()}`, "Since inception"];
+  const periodTf: Record<string, string> = {
+    [currentPeriod]: "M",
+    [`Q2 ${now.getFullYear()}`]: "D",
+    [`YTD ${now.getFullYear()}`]: "W",
+    "Since inception": "All",
+  };
 
   const payload = {
     investor: {
@@ -302,10 +508,11 @@ export async function GET() {
       initials: monogram(displayName),
     },
     header: {
-      dateRange: periodLabel(now),
+      dateRange: currentPeriod,
       today: todayLabel(now),
-      notifCount,
     },
+    periods,
+    periodTf,
     figures: {
       nav,
       prevPeriod,
@@ -324,7 +531,47 @@ export async function GET() {
       { name: "Unencumbered", share: 20, tone: "light" },
     ],
     navSeries,
+    navTable,
     ledger,
+    ordersPending,
+    ordersSettled,
+    orderClasses,
+    notifs,
+    docs,
+    // MOCK: monthly distributions — no distributions surface exists in the
+    // portal schema; prototype values stay (see MOCK-FED INVENTORY).
+    distributions: [
+      { date: "Jun 2, 2026", desc: "Monthly distribution — May", amount: 12500 },
+      { date: "May 4, 2026", desc: "Monthly distribution — April", amount: 11840 },
+      { date: "Apr 6, 2026", desc: "Monthly distribution — March", amount: 10920 },
+      { date: "Mar 2, 2026", desc: "Monthly distribution — February", amount: 9870 },
+    ],
+    // MOCK: on-chain transparency (wallet registry, staking, venue balances,
+    // proof of reserves). The desk DB holds the real venues/balances but the
+    // cassets_portal role is not granted on them; exposing a curated,
+    // aggregate-safe v_portal_transparency view needs a DESK-SIDE migration
+    // (flagged in the MOCK-FED INVENTORY). Prototype values stay until then.
+    wallets: [
+      { label: "Custody — Sygnum", addr: "cassets-custody.near", kind: "CUSTODY" },
+      { label: "Staking proxy", addr: "cassets-staking.near", kind: "ON-CHAIN" },
+      { label: "Settlement — USDC", addr: "0x8f3C…9A41", kind: "SETTLEMENT" },
+    ],
+    chainStaking: [
+      { pool: "meta-pool.near", staked: 2400000, apy: "8.9%" },
+      { pool: "astro-stakers.poolv1.near", staked: 1800000, apy: "8.7%" },
+      { pool: "figment.poolv1.near", staked: 1400000, apy: "8.4%" },
+      { pool: "zavodil.poolv1.near", staked: 1200000, apy: "8.6%" },
+    ],
+    chainVenues: [
+      { name: "Sygnum Custody", near: 16300000, verified: "Jun 9, 18:00" },
+      { name: "G20 OTC", near: 2000000, verified: "Jun 10, 08:00" },
+      { name: "Meridian Digital", near: 1000000, verified: "Jun 9, 22:00" },
+    ],
+    por: [
+      { date: "Jun 9, 2026", scope: "All venues + on-chain", result: "MATCHED", total: 26100000 },
+      { date: "Jun 2, 2026", scope: "All venues + on-chain", result: "MATCHED", total: 25987400 },
+      { date: "May 26, 2026", scope: "All venues + on-chain", result: "MATCHED", total: 25910000 },
+    ],
     // No surfaces for these exist in the design prototype; returned so the
     // shapes are bridged and download URLs are the real ownership-checked
     // route (see MOCK-FED INVENTORY in the integration report).

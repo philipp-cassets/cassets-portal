@@ -7,6 +7,7 @@ import type {
   NewsRow,
   CellStatsRow,
   RedemptionRequestRow,
+  SubscriptionRequestRow,
 } from "./data";
 
 /**
@@ -130,6 +131,20 @@ export const previewData = {
     },
     {
       investor_id: PREVIEW_INVESTOR_ID,
+      type: "redemption",
+      trade_date: "2026-05-18",
+      amount_usd: null,
+      amount_near: "200000",
+      units: "195312",
+      nav_per_unit: "1.024000",
+      status: "settled",
+      cell: "CNEAR",
+      share_class: "N",
+      settled_at: "2026-05-20T12:00:00Z",
+      ref: "RED-2026-0003",
+    },
+    {
+      investor_id: PREVIEW_INVESTOR_ID,
       type: "subscription",
       trade_date: "2026-04-15",
       amount_usd: "1000000",
@@ -178,6 +193,49 @@ export const previewData = {
     ref: "REQ-2026-0042",
     units: String(units),
     share_class: shareClass,
+    status: "requested" as const,
+  }),
+
+  subscriptionRequests: [
+    {
+      investor_id: PREVIEW_INVESTOR_ID,
+      id: "subr-0005",
+      ref: "SUBR-2026-0005",
+      cell: "CNEAR",
+      share_class: "N",
+      amount_usd: null,
+      amount_near: "500000",
+      status: "requested",
+      requested_at: "2026-06-09T14:00:00Z",
+      note: null,
+    },
+    {
+      investor_id: PREVIEW_INVESTOR_ID,
+      id: "subr-0004",
+      ref: "SUBR-2026-0004",
+      cell: "CNEAR",
+      share_class: "U",
+      amount_usd: "150000",
+      amount_near: null,
+      status: "approved",
+      requested_at: "2026-06-06T10:00:00Z",
+      note: null,
+    },
+  ] as SubscriptionRequestRow[],
+
+  /** Readback returned by the order route (subscribe) in preview mode. */
+  subscriptionReadback: (
+    cell: string,
+    shareClass: string,
+    amountUsd: number | null,
+    amountNear: number | null
+  ) => ({
+    id: "subr-preview-new",
+    ref: "SUBR-2026-0042",
+    cell,
+    share_class: shareClass,
+    amount_usd: amountUsd != null ? String(amountUsd) : null,
+    amount_near: amountNear != null ? String(amountNear) : null,
     status: "requested" as const,
   }),
 

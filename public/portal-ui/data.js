@@ -78,17 +78,34 @@
     return s.unit === "NEAR" ? sign + body + " NEAR" : sign + "$ " + body;
   }
 
-  // Revive NAV series dates (server sends YYYY-MM-DD strings).
-  var NAV_SERIES = {};
+  // Revive barcode NAV series dates (server sends YYYY-MM-DD strings).
+  var NAV_POINTS = {};
   ["USD", "NEAR"].forEach(function (k) {
     var src = (payload.navSeries && payload.navSeries[k]) || { unit: k, points: [] };
-    NAV_SERIES[k] = {
+    NAV_POINTS[k] = {
       unit: src.unit,
       points: (src.points || []).map(function (p) {
         return { date: new Date(p.date + "T00:00:00"), nav: Number(p.nav) };
       }),
     };
   });
+
+  // Notification read-state lives in localStorage only — there is no
+  // notification backend (see MOCK-FED INVENTORY in route.ts).
+  var READ_KEY = "cnear-portal-notifs-read";
+  var readIds = [];
+  try { readIds = JSON.parse(localStorage.getItem(READ_KEY)) || []; } catch (e) { /* noop */ }
+  var NOTIFS = (payload.notifs || []).map(function (n) {
+    return { id: n.id, t: n.t, d: n.d, read: readIds.indexOf(n.id) !== -1 };
+  });
+  function saveNotifRead(notifs) {
+    try {
+      localStorage.setItem(
+        READ_KEY,
+        JSON.stringify(notifs.filter(function (n) { return n.read; }).map(function (n) { return n.id; }))
+      );
+    } catch (e) { /* noop */ }
+  }
 
   window.PortalData = {
     parts: parts,
@@ -98,11 +115,25 @@
     FIGURES: payload.figures,
     SEGMENTS: payload.segments,
     LEDGER: payload.ledger,
-    NAV_SERIES: NAV_SERIES,
+    NAV_POINTS: NAV_POINTS,
+    NAV_TABLE: payload.navTable,
+    ORDERS_PENDING: payload.ordersPending || [],
+    ORDERS_SETTLED: payload.ordersSettled || [],
+    ORDER_CLASSES: payload.orderClasses || [],
+    DISTRIBUTIONS: payload.distributions || [],
+    WALLETS: payload.wallets || [],
+    CHAIN_STAKING: payload.chainStaking || [],
+    CHAIN_VENUES: payload.chainVenues || [],
+    POR: payload.por || [],
+    DOCS: payload.docs || { statements: [], confirmations: [], tax: [] },
+    NOTIFS: NOTIFS,
+    saveNotifRead: saveNotifRead,
+    PERIODS: payload.periods || ["—"],
+    PERIOD_TF: payload.periodTf || {},
     INVESTOR: payload.investor,
     HEADER: payload.header,
-    // Returned by the bridge for completeness; the design prototype has no
-    // documents / news / redemption surfaces (see MOCK-FED INVENTORY).
+    // Returned by the bridge for completeness (raw rows behind the mapped
+    // surfaces above; see MOCK-FED INVENTORY).
     DOCUMENTS: payload.documents,
     NEWS: payload.news,
     REDEMPTION_REQUESTS: payload.redemptionRequests,

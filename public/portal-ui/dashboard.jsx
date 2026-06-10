@@ -2,7 +2,7 @@
 
 (function () {
   const { useState, useEffect, useRef, useMemo } = React;
-  const { FIGURES, SEGMENTS, LEDGER, NAV_SERIES, parts, full, group } = PortalData;
+  const { FIGURES, SEGMENTS, LEDGER, NAV_POINTS, parts, full, group } = PortalData;
 
   /* ---------- count-up hook (expo-out, 0.9s) ---------- */
   function useCountUp(target, duration = 900, delay = 300) {
@@ -27,6 +27,19 @@
   }
 
   /* ---------- KPI block ---------- */
+  // Trend pill: real % over the selected window of the published NAV series
+  // (suffix labels per §4 canon; M uses the bridge's real MTD figure).
+  const TF_SUF = { H: "1h", D: "today", W: "7d", M: "MTD", All: "inception" };
+  const TF_DAYS = { H: 30, D: 90, W: 180, M: 280, All: 420 };
+  function tfPill(denom, timeframe) {
+    if (timeframe === "M" && FIGURES.mtdPct[denom]) return FIGURES.mtdPct[denom] + " MTD";
+    const pts = NAV_POINTS[denom].points;
+    const w = Math.min(pts.length, TF_DAYS[timeframe] || pts.length);
+    if (w < 2) return "— " + TF_SUF[timeframe];
+    const pct = (pts[pts.length - 1].nav / pts[pts.length - w].nav - 1) * 100;
+    return (pct >= 0 ? "+" : "−") + Math.abs(pct).toFixed(2) + "% " + TF_SUF[timeframe];
+  }
+
   function KpiBlock({ denom, rp, timeframe, setTimeframe }) {
     const navSel = FIGURES.nav[denom];
     const counted = useCountUp(1);
@@ -48,7 +61,7 @@
             </div>
             <div className="sage-pills">
               <span className={"sage-pill tnum" + rp}>
-                <IcoTrend size={11}></IcoTrend> {FIGURES.mtdPct[denom]} MTD
+                <IcoTrend size={11}></IcoTrend> {tfPill(denom, timeframe)}
               </span>
               <span className={"sage-pill tnum" + rp}>NAV/unit {FIGURES.navPerUnit[denom]}</span>
             </div>
@@ -116,7 +129,7 @@
 
   const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-  function BarcodeChart({ denom }) {
+  function BarcodeChart({ denom, timeframe }) {
     const wrapRef = useRef(null);
     const [width, setWidth] = useState(0);
     const [hover, setHover] = useState(null); // {idx, x, y}
@@ -130,31 +143,36 @@
       return () => ro.disconnect();
     }, []);
 
-    const SER = NAV_SERIES[denom];
+    const SER = NAV_POINTS[denom];
     const pts = SER.points;
-    const n = Math.max(0, Math.min(MAX_STROKES, Math.min(pts.length, Math.floor(width / PITCH))));
+    const window_ = TF_DAYS[timeframe] || MAX_STROKES;
+    const fit = Math.max(0, Math.floor(width / PITCH));
+    // H/D windows may hold fewer real points than the window; strokes spread
+    // to fill the band width (pitch = width / count), per §4 canon.
+    const n = Math.max(0, Math.min(MAX_STROKES, Math.min(window_, Math.min(pts.length, fit))));
+    const pitch = n > 0 ? width / n : PITCH;
     const series = pts.slice(pts.length - n);
-    const min = pts.length ? Math.min.apply(null, pts.map((p) => p.nav)) : 0;
-    const max = Math.max(min + 0.000001, pts.length ? Math.max.apply(null, pts.map((p) => p.nav)) : 1);
+    const min = series.length ? Math.min.apply(null, series.map((p) => p.nav)) : 0;
+    const max = Math.max(min + 0.000001, series.length ? Math.max.apply(null, series.map((p) => p.nav)) : 1);
 
     const div1 = width * 0.42;
     const div2 = width * 0.80;
 
     const strokes = useMemo(() => {
       return series.map((pt, i) => {
-        const x = i * PITCH;
+        const x = i * pitch;
         const norm = Math.max(0, Math.min(1, (pt.nav - min) / (max - min)));
         const len = (0.55 + 0.45 * norm) * BAND_H;
         const tone = x >= div2 ? "light" : x >= div1 ? "olive" : "default";
         return { x, len, tone, pt, i };
       });
-    }, [n, width, denom]);
+    }, [n, width, pitch, denom]);
 
     const onMove = (e) => {
       const rect = wrapRef.current.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
-      const idx = Math.floor(x / PITCH);
+      const idx = Math.floor(x / pitch);
       if (idx >= 0 && idx < n && y <= BAND_H) setHover({ idx, x, y });
       else setHover(null);
     };
