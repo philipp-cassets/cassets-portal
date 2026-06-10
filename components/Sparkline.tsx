@@ -56,19 +56,19 @@ export function Sparkline({
       aria-label={`Published NAV per unit, from ${baselineLabel} to ${terminalLabel}`}
     >
       {/* hairline axes */}
-      <line x1={left} y1={baseY} x2={right} y2={baseY} stroke="#DBD6C8" strokeWidth="1" />
-      <line x1={left} y1={top} x2={left} y2={baseY} stroke="#DBD6C8" strokeWidth="1" />
+      <line x1={left} y1={baseY} x2={right} y2={baseY} stroke="var(--hairline)" strokeWidth="1" />
+      <line x1={left} y1={top} x2={left} y2={baseY} stroke="var(--hairline)" strokeWidth="1" />
       {/* thin forest line */}
       <polyline
         points={points}
         fill="none"
-        stroke="#1F3D2B"
+        stroke="var(--accent)"
         strokeWidth="1.5"
         strokeLinejoin="round"
         strokeLinecap="round"
       />
       {/* terminal dot + value */}
-      <circle cx={right} cy={lastY} r="2" fill="#1F3D2B" />
+      <circle cx={right} cy={lastY} r="2" fill="var(--accent)" />
       <text className="term-label" x={right + 12} y={lastY + 3.5}>
         {terminalLabel}
       </text>

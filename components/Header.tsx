@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 /**
  * Site header in the report style: wordmark and session line on the
@@ -45,6 +46,7 @@ export function Header({
             ) : (
               <a href="/handler/sign-in">Investor sign in</a>
             )}
+            <ThemeToggle />
           </div>
         </div>
         <nav className="site-nav">

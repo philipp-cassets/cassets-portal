@@ -3,19 +3,57 @@
  * One grotesk family, hierarchy purely via scale and weight. Warm white
  * paper, ink, hairline rules. Forest green is the only accent; burgundy
  * appears strictly for negative, voided or destructive states.
+ *
+ * All colors are CSS custom properties with a light (:root) and dark
+ * ([data-theme="dark"]) set. When no explicit data-theme is present the
+ * dark set also applies via prefers-color-scheme as a system fallback.
  */
 
 :root {
-  --paper: #f5f2ea;
-  --ink: #14161a;
-  --grey: #6f6b62;
-  --hair: #dbd6c8;
-  --forest: #1f3d2b;
-  --burgundy: #6e1d24;
+  --bg: #f5f2ea;
+  --panel: #efece1;
+  --fg: #14161a;
+  --muted: #6f6b62;
+  --hairline: #dbd6c8;
+  --accent: #1f3d2b;
+  --negative: #6e1d24;
   --ghost: #e4dfd0;
+  --overlay: rgba(20, 22, 26, 0.32);
 
   --sans: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica,
     Arial, sans-serif;
+
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --bg: #14161a;
+  --panel: #1b1e24;
+  --fg: #ede9dd;
+  --muted: #8b867a;
+  --hairline: #2e3138;
+  --accent: #4f8364;
+  --negative: #b0524a;
+  --ghost: #1f2228;
+  --overlay: rgba(0, 0, 0, 0.55);
+
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --bg: #14161a;
+    --panel: #1b1e24;
+    --fg: #ede9dd;
+    --muted: #8b867a;
+    --hairline: #2e3138;
+    --accent: #4f8364;
+    --negative: #b0524a;
+    --ghost: #1f2228;
+    --overlay: rgba(0, 0, 0, 0.55);
+
+    color-scheme: dark;
+  }
 }
 
 * {
@@ -25,12 +63,12 @@
 }
 
 html {
-  background: var(--paper);
+  background: var(--bg);
 }
 
 body {
-  background: var(--paper);
-  color: var(--ink);
+  background: var(--bg);
+  color: var(--fg);
   font-family: var(--sans);
   font-size: 14px;
   line-height: 1.5;
@@ -39,7 +77,7 @@ body {
 }
 
 a {
-  color: var(--forest);
+  color: var(--accent);
   text-decoration: none;
 }
 a:hover {
@@ -66,7 +104,7 @@ button {
   font-weight: 500;
 }
 .caps-grey {
-  color: var(--grey);
+  color: var(--muted);
 }
 
 /* ---------- Shell ---------- */
@@ -92,8 +130,8 @@ main.container {
 /* ---------- Header ---------- */
 
 .site-header {
-  border-bottom: 1px solid var(--hair);
-  background: var(--paper);
+  border-bottom: 1px solid var(--hairline);
+  background: var(--bg);
 }
 
 .masthead {
@@ -106,7 +144,7 @@ main.container {
 .wordmark {
   font-size: 24px;
   letter-spacing: -0.01em;
-  color: var(--ink);
+  color: var(--fg);
   line-height: 1;
 }
 .wordmark:hover {
@@ -121,17 +159,34 @@ main.container {
 
 .session {
   font-size: 12px;
-  color: var(--grey);
+  color: var(--muted);
 }
 .session b {
   font-weight: 500;
-  color: var(--ink);
+  color: var(--fg);
   font-variant: small-caps;
   text-transform: lowercase;
   letter-spacing: 0.06em;
 }
 .session a {
   margin-left: 16px;
+}
+
+/* Quiet theme toggle at the right end of the masthead session line. */
+.theme-toggle {
+  background: none;
+  border: none;
+  padding: 0;
+  margin-left: 16px;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+}
+.theme-toggle:hover {
+  color: var(--fg);
 }
 
 .site-nav {
@@ -143,17 +198,17 @@ main.container {
   font-size: 11px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--grey);
+  color: var(--muted);
   font-weight: 500;
   padding-bottom: 2px;
 }
 .site-nav a:hover {
-  color: var(--ink);
+  color: var(--fg);
   text-decoration: none;
 }
 .site-nav a.current {
-  color: var(--forest);
-  border-bottom: 1px solid var(--forest);
+  color: var(--accent);
+  border-bottom: 1px solid var(--accent);
 }
 
 /* ---------- Section heads: ghost number over a hairline rule ---------- */
@@ -186,11 +241,11 @@ main.container {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   font-weight: 500;
-  color: var(--ink);
+  color: var(--fg);
   padding-bottom: 8px;
 }
 .section-title .slash {
-  color: var(--grey);
+  color: var(--muted);
   font-weight: 300;
   margin: 0 6px;
 }
@@ -200,7 +255,7 @@ main.container {
   right: 0;
   bottom: 0;
   height: 1px;
-  background: var(--hair);
+  background: var(--hairline);
 }
 
 .subhead {
@@ -208,15 +263,15 @@ main.container {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   font-weight: 500;
-  color: var(--ink);
+  color: var(--fg);
   margin: 72px 0 0;
   padding-bottom: 12px;
-  border-bottom: 1px solid var(--hair);
+  border-bottom: 1px solid var(--hairline);
 }
 
 .page-intro {
   font-size: 14px;
-  color: var(--grey);
+  color: var(--muted);
   margin: 0 0 48px;
   max-width: 660px;
 }
@@ -241,7 +296,7 @@ main.container {
 }
 .investor-sub {
   font-size: 12px;
-  color: var(--grey);
+  color: var(--muted);
   margin-top: 4px;
 }
 
@@ -267,20 +322,20 @@ main.container {
 .hero-value .unit {
   font-size: 24px;
   font-weight: 300;
-  color: var(--grey);
+  color: var(--muted);
   letter-spacing: 0;
   margin-left: 8px;
 }
 .hero-value .cur {
   font-weight: 200;
-  color: var(--grey);
+  color: var(--muted);
 }
 .hero-meta {
   display: flex;
   gap: 48px;
   margin-top: 24px;
   padding-top: 16px;
-  border-top: 1px solid var(--hair);
+  border-top: 1px solid var(--hairline);
   flex-wrap: wrap;
 }
 .hero-meta .m {
@@ -291,7 +346,7 @@ main.container {
   font-size: 11px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--grey);
+  color: var(--muted);
   font-weight: 500;
   margin-bottom: 4px;
 }
@@ -300,11 +355,11 @@ main.container {
   font-weight: 400;
 }
 .hero-meta .v.pos {
-  color: var(--forest);
+  color: var(--accent);
   font-weight: 500;
 }
 .hero-meta .v.neg {
-  color: var(--burgundy);
+  color: var(--negative);
   font-weight: 500;
 }
 
@@ -319,7 +374,7 @@ main.container {
   padding: 0;
   font-size: 13px;
   font-weight: 500;
-  color: var(--forest);
+  color: var(--accent);
   cursor: pointer;
 }
 .text-button:hover {
@@ -351,24 +406,24 @@ main.container {
   font-size: 11px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--grey);
+  color: var(--muted);
   font-weight: 500;
 }
 .holding-row .hk .pct {
   font-size: 14px;
   font-weight: 500;
-  color: var(--forest);
+  color: var(--accent);
 }
 .holding-row .hv {
   font-size: 14px;
   margin-bottom: 12px;
 }
 .holding-row .hv .of {
-  color: var(--grey);
+  color: var(--muted);
 }
 .bar-track {
   height: 2px;
-  background: var(--hair);
+  background: var(--hairline);
   position: relative;
 }
 .bar-fill {
@@ -376,13 +431,13 @@ main.container {
   left: 0;
   top: 0;
   bottom: 0;
-  background: var(--forest);
+  background: var(--accent);
 }
 
 .aum-row {
   margin-top: 48px;
   padding-top: 24px;
-  border-top: 1px solid var(--hair);
+  border-top: 1px solid var(--hairline);
   row-gap: 24px;
 }
 .aum-stat {
@@ -393,7 +448,7 @@ main.container {
   font-size: 11px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--grey);
+  color: var(--muted);
   font-weight: 500;
   margin-bottom: 8px;
 }
@@ -404,7 +459,7 @@ main.container {
 }
 .aum-stat .v .unit {
   font-size: 13px;
-  color: var(--grey);
+  color: var(--muted);
   font-weight: 400;
   margin-left: 4px;
 }
@@ -412,7 +467,7 @@ main.container {
   grid-column: span 6;
   align-self: end;
   font-size: 12px;
-  color: var(--grey);
+  color: var(--muted);
   text-align: right;
 }
 
@@ -435,14 +490,14 @@ main.container {
 .ax-label {
   font-family: var(--sans);
   font-size: 10px;
-  fill: var(--grey);
+  fill: var(--muted);
   font-variant-numeric: tabular-nums;
 }
 .term-label {
   font-family: var(--sans);
   font-size: 11px;
   font-weight: 500;
-  fill: var(--forest);
+  fill: var(--accent);
   font-variant-numeric: tabular-nums;
 }
 
@@ -458,10 +513,10 @@ table.data thead th {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   font-weight: 500;
-  color: var(--grey);
+  color: var(--muted);
   text-align: left;
   padding: 0 12px 12px 0;
-  border-bottom: 1px solid var(--ink);
+  border-bottom: 1px solid var(--fg);
   white-space: nowrap;
 }
 table.data thead th.r {
@@ -469,7 +524,7 @@ table.data thead th.r {
 }
 table.data tbody td {
   padding: 16px 12px 16px 0;
-  border-bottom: 1px solid var(--hair);
+  border-bottom: 1px solid var(--hairline);
   font-size: 13px;
   vertical-align: baseline;
   white-space: nowrap;
@@ -479,7 +534,7 @@ table.data tbody td.r {
   font-variant-numeric: tabular-nums;
 }
 table.data tbody td.ref {
-  color: var(--grey);
+  color: var(--muted);
   font-size: 12px;
   letter-spacing: 0.03em;
 }
@@ -489,11 +544,11 @@ table.data thead th:last-child {
 }
 
 td .dim {
-  color: var(--grey);
+  color: var(--muted);
 }
 td .pending-note {
   font-size: 11px;
-  color: var(--grey);
+  color: var(--muted);
   letter-spacing: 0.02em;
 }
 
@@ -504,19 +559,19 @@ td .pending-note {
   text-transform: uppercase;
   font-weight: 500;
   white-space: nowrap;
-  color: var(--ink);
+  color: var(--fg);
 }
 .status-text.pending {
-  color: var(--grey);
+  color: var(--muted);
 }
 .status-text.void {
-  color: var(--burgundy);
+  color: var(--negative);
 }
 td.status {
   text-align: right;
 }
 tr.void td:not(.status) {
-  color: var(--burgundy);
+  color: var(--negative);
   text-decoration: line-through;
   text-decoration-thickness: 1px;
   opacity: 0.85;
@@ -545,7 +600,7 @@ tr.void td:not(.status) {
 .bal-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  border-top: 1px solid var(--hair);
+  border-top: 1px solid var(--hairline);
 }
 .bal-cell {
   padding: 16px 12px 0 0;
@@ -558,7 +613,7 @@ tr.void td:not(.status) {
   font-size: 11px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--grey);
+  color: var(--muted);
   font-weight: 500;
   margin-bottom: 6px;
 }
@@ -575,7 +630,7 @@ tr.void td:not(.status) {
 .footnote {
   margin-top: 48px;
   font-size: 12px;
-  color: var(--grey);
+  color: var(--muted);
   max-width: 660px;
 }
 
@@ -592,7 +647,7 @@ tr.void td:not(.status) {
 /* ---------- Documents ---------- */
 
 .doc-list {
-  border-top: 1px solid var(--ink);
+  border-top: 1px solid var(--fg);
 }
 .doc-row {
   display: grid;
@@ -600,7 +655,7 @@ tr.void td:not(.status) {
   column-gap: 24px;
   align-items: baseline;
   padding: 20px 0;
-  border-bottom: 1px solid var(--hair);
+  border-bottom: 1px solid var(--hairline);
 }
 .doc-name {
   font-weight: 500;
@@ -610,7 +665,7 @@ tr.void td:not(.status) {
   font-size: 11px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--grey);
+  color: var(--muted);
   font-weight: 500;
 }
 .doc-dl {
@@ -628,12 +683,12 @@ tr.void td:not(.status) {
 /* ---------- Empty states ---------- */
 
 .empty-state {
-  border-top: 1px solid var(--hair);
-  border-bottom: 1px solid var(--hair);
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
   padding: 56px 0;
   text-align: center;
   font-size: 14px;
-  color: var(--grey);
+  color: var(--muted);
   font-weight: 300;
 }
 
@@ -643,14 +698,14 @@ tr.void td:not(.status) {
   padding: 0 0 56px;
 }
 .news-post + .news-post {
-  border-top: 1px solid var(--hair);
+  border-top: 1px solid var(--hairline);
   padding-top: 48px;
 }
 .news-post .meta {
   font-size: 11px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--grey);
+  color: var(--muted);
   font-weight: 500;
   margin-bottom: 12px;
   display: flex;
@@ -665,7 +720,7 @@ tr.void td:not(.status) {
 }
 .news-body {
   max-width: 660px;
-  color: var(--ink);
+  color: var(--fg);
 }
 .news-body p {
   margin: 0 0 14px;
@@ -674,13 +729,13 @@ tr.void td:not(.status) {
 .news-body h4,
 .news-body h5 {
   font-weight: 500;
-  color: var(--ink);
+  color: var(--fg);
   margin: 22px 0 8px;
 }
 .news-body code {
   font-size: 0.95em;
   background: transparent;
-  border-bottom: 1px solid var(--hair);
+  border-bottom: 1px solid var(--hairline);
   font-variant-numeric: tabular-nums;
 }
 .news-body ul {
@@ -699,7 +754,7 @@ tr.void td:not(.status) {
   letter-spacing: 0.18em;
   text-transform: uppercase;
   font-weight: 500;
-  color: var(--grey);
+  color: var(--muted);
   margin-bottom: 24px;
 }
 .pending-screen h1 {
@@ -709,7 +764,7 @@ tr.void td:not(.status) {
   margin: 0 0 16px;
 }
 .pending-screen p {
-  color: var(--grey);
+  color: var(--muted);
   font-size: 14px;
   margin: 0 0 12px;
 }
@@ -720,7 +775,7 @@ tr.void td:not(.status) {
   max-width: 680px;
 }
 .transparency-hero p {
-  color: var(--ink);
+  color: var(--fg);
   font-size: 15px;
   margin: 0 0 16px;
 }
@@ -737,7 +792,7 @@ tr.void td:not(.status) {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(20, 22, 26, 0.32);
+  background: var(--overlay);
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -746,8 +801,8 @@ tr.void td:not(.status) {
   overflow-y: auto;
 }
 .modal {
-  background: var(--paper);
-  border: 1px solid var(--hair);
+  background: var(--panel);
+  border: 1px solid var(--hairline);
   width: 100%;
   max-width: 480px;
   padding: 40px;
@@ -757,7 +812,7 @@ tr.void td:not(.status) {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   font-weight: 500;
-  color: var(--grey);
+  color: var(--muted);
   margin-bottom: 8px;
 }
 .modal h2 {
@@ -766,7 +821,7 @@ tr.void td:not(.status) {
   letter-spacing: -0.01em;
   margin: 0 0 24px;
   padding-bottom: 16px;
-  border-bottom: 1px solid var(--hair);
+  border-bottom: 1px solid var(--hairline);
 }
 .modal .field {
   margin-bottom: 20px;
@@ -777,7 +832,7 @@ tr.void td:not(.status) {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   font-weight: 500;
-  color: var(--grey);
+  color: var(--muted);
   margin-bottom: 8px;
 }
 .modal input,
@@ -785,10 +840,10 @@ tr.void td:not(.status) {
   width: 100%;
   font-family: var(--sans);
   font-size: 15px;
-  color: var(--ink);
+  color: var(--fg);
   background: transparent;
   border: none;
-  border-bottom: 1px solid var(--hair);
+  border-bottom: 1px solid var(--hairline);
   padding: 6px 0;
   font-variant-numeric: tabular-nums;
   border-radius: 0;
@@ -796,16 +851,16 @@ tr.void td:not(.status) {
 .modal input:focus,
 .modal textarea:focus {
   outline: none;
-  border-bottom-color: var(--forest);
+  border-bottom-color: var(--accent);
 }
 .modal .helper {
   font-size: 12px;
-  color: var(--grey);
+  color: var(--muted);
   margin-top: 6px;
 }
 .modal .form-error {
   font-size: 13px;
-  color: var(--burgundy);
+  color: var(--negative);
   margin: 16px 0 0;
 }
 .modal .modal-actions {
@@ -814,7 +869,7 @@ tr.void td:not(.status) {
   align-items: baseline;
   margin-top: 32px;
   padding-top: 16px;
-  border-top: 1px solid var(--hair);
+  border-top: 1px solid var(--hairline);
 }
 .modal .ghost-button {
   background: none;
@@ -824,11 +879,11 @@ tr.void td:not(.status) {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   font-weight: 500;
-  color: var(--grey);
+  color: var(--muted);
   cursor: pointer;
 }
 .modal .ghost-button:hover {
-  color: var(--ink);
+  color: var(--fg);
 }
 .modal .primary-button {
   background: none;
@@ -836,7 +891,7 @@ tr.void td:not(.status) {
   padding: 0;
   font-size: 13px;
   font-weight: 500;
-  color: var(--forest);
+  color: var(--accent);
   cursor: pointer;
 }
 .modal .primary-button:hover {
@@ -852,21 +907,21 @@ tr.void td:not(.status) {
 }
 
 .modal .summary {
-  border-top: 1px solid var(--ink);
+  border-top: 1px solid var(--fg);
 }
 .modal .summary .srow {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
   padding: 12px 0;
-  border-bottom: 1px solid var(--hair);
+  border-bottom: 1px solid var(--hairline);
 }
 .modal .summary .sk {
   font-size: 11px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   font-weight: 500;
-  color: var(--grey);
+  color: var(--muted);
 }
 .modal .summary .sv {
   font-size: 14px;
@@ -874,7 +929,7 @@ tr.void td:not(.status) {
 }
 .modal .indicative-note {
   font-size: 12px;
-  color: var(--grey);
+  color: var(--muted);
   margin-top: 16px;
 }
 .modal .success-line {
@@ -883,15 +938,15 @@ tr.void td:not(.status) {
 }
 .modal .success-sub {
   font-size: 13px;
-  color: var(--grey);
+  color: var(--muted);
 }
 
 /* ---------- Footer ---------- */
 
 .site-footer {
-  border-top: 1px solid var(--hair);
+  border-top: 1px solid var(--hairline);
   margin-top: 32px;
-  background: var(--paper);
+  background: var(--bg);
 }
 .site-footer .foot-inner {
   padding: 40px 0 64px;
@@ -901,17 +956,17 @@ tr.void td:not(.status) {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   font-weight: 500;
-  color: var(--ink);
+  color: var(--fg);
   margin-bottom: 16px;
 }
 .site-footer .foot-caps .sep {
-  color: var(--grey);
+  color: var(--muted);
   font-weight: 300;
   margin: 0 10px;
 }
 .site-footer .foot-legal {
   font-size: 11px;
-  color: var(--grey);
+  color: var(--muted);
   line-height: 1.7;
   max-width: 840px;
 }

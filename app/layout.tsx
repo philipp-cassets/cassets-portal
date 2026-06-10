@@ -16,9 +16,9 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 // Auth UI chrome themed to the house style: warm paper, forest primary,
-// hairline borders. The portal has no dark variant, so both modes receive
-// the same paper.
-const stackThemeColors = {
+// hairline borders in light; the same voice on ink in dark. Both sets
+// mirror the palettes in globals.css.
+const stackLightColors = {
   background: "#f5f2ea",
   foreground: "#14161a",
   card: "#f5f2ea",
@@ -40,11 +40,38 @@ const stackThemeColors = {
   ring: "#1f3d2b",
 };
 
+const stackDarkColors = {
+  background: "#14161a",
+  foreground: "#ede9dd",
+  card: "#1b1e24",
+  cardForeground: "#ede9dd",
+  popover: "#1b1e24",
+  popoverForeground: "#ede9dd",
+  primary: "#4f8364",
+  primaryForeground: "#14161a",
+  secondary: "#2e3138",
+  secondaryForeground: "#ede9dd",
+  muted: "#2e3138",
+  mutedForeground: "#8b867a",
+  accent: "#2e3138",
+  accentForeground: "#ede9dd",
+  destructive: "#b0524a",
+  destructiveForeground: "#14161a",
+  border: "#2e3138",
+  input: "#2e3138",
+  ring: "#4f8364",
+};
+
 const stackTheme = {
-  light: stackThemeColors,
-  dark: stackThemeColors,
+  light: stackLightColors,
+  dark: stackDarkColors,
   radius: "2px",
 };
+
+// Restores a persisted theme choice before first paint so there is no
+// flash. Runs as the first node in <body>; absent or invalid storage means
+// no data-theme, which lets prefers-color-scheme decide via globals.css.
+const themeInitScript = `try{var t=localStorage.getItem("cassets-theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t}catch(e){}`;
 
 export default async function RootLayout({
   children,
@@ -66,8 +93,9 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <StackProvider app={stackServerApp}>
           <StackTheme theme={stackTheme}>
             <div className="shell">
