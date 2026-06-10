@@ -1,6 +1,7 @@
 import "server-only";
 import { stackServerApp } from "@/stack";
 import { query } from "./db";
+import { isPreview, previewSession } from "./preview";
 
 export type PortalSession = {
   /** Stack Auth user id */
@@ -22,6 +23,7 @@ export type PortalSession = {
 export async function getInvestorIdForAuthUser(
   authUserId: string
 ): Promise<string | null> {
+  if (isPreview()) return previewSession.investorId;
   const rows = await query<{ investor_id: string }>(
     `SELECT investor_id
        FROM cassets.investor_users
@@ -39,6 +41,7 @@ export async function getInvestorIdForAuthUser(
  * MUST filter on session.investorId.
  */
 export async function requirePortalSession(): Promise<PortalSession> {
+  if (isPreview()) return { ...previewSession };
   const user = await stackServerApp.getUser({ or: "redirect" });
   const investorId = await getInvestorIdForAuthUser(user.id);
   return {
@@ -53,6 +56,9 @@ export async function getOptionalUser(): Promise<{
   authUserId: string;
   displayName: string;
 } | null> {
+  if (isPreview()) {
+    return { authUserId: previewSession.authUserId, displayName: previewSession.displayName };
+  }
   const user = await stackServerApp.getUser();
   if (!user) return null;
   return {

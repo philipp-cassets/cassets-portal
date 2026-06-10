@@ -1,6 +1,7 @@
 import "server-only";
 import { query } from "./db";
 import type { Denomination } from "./format";
+import { isPreview, previewData } from "./preview";
 
 /**
  * Typed reads against the cassets portal views.
@@ -21,6 +22,7 @@ export type PositionRow = {
 };
 
 export async function getPositions(investorId: string): Promise<PositionRow[]> {
+  if (isPreview()) return previewData.positions;
   return query<PositionRow>(
     `SELECT investor_id, cell, share_class, denomination,
             units, nav_per_unit, value, nav_date
@@ -43,6 +45,7 @@ export type ActivityRow = {
 };
 
 export async function getActivity(investorId: string): Promise<ActivityRow[]> {
+  if (isPreview()) return previewData.activity;
   return query<ActivityRow>(
     `SELECT investor_id, type, trade_date, amount_usd, amount_near,
             units, nav_per_unit, status
@@ -66,6 +69,7 @@ export async function getNavHistory(
   shareClass: string,
   limit = 90
 ): Promise<NavRow[]> {
+  if (isPreview()) return (previewData.nav[shareClass] ?? []).slice(-limit);
   const rows = await query<NavRow>(
     `SELECT cell, share_class, nav_date, nav_per_unit
        FROM cassets.v_portal_nav
@@ -87,6 +91,7 @@ export type DocumentRow = {
 };
 
 export async function getDocuments(investorId: string): Promise<DocumentRow[]> {
+  if (isPreview()) return previewData.documents;
   return query<DocumentRow>(
     `SELECT id, investor_id, doc_type, period_start, period_end, filename
        FROM cassets.v_portal_documents
@@ -111,6 +116,13 @@ export async function getDocumentForInvestor(
   documentId: string,
   investorId: string
 ): Promise<DocumentContentRow | null> {
+  if (isPreview()) {
+    return {
+      content: Buffer.from("Preview document. Real statements are generated after go-live.", "utf8"),
+      mime_type: "text/plain",
+      filename: "preview.txt",
+    };
+  }
   const rows = await query<DocumentContentRow>(
     `SELECT d.content, d.mime_type, v.filename
        FROM cassets.investor_documents d
@@ -136,6 +148,7 @@ export type NewsRow = {
  * the investor actually holds.
  */
 export async function getNews(cells: string[]): Promise<NewsRow[]> {
+  if (isPreview()) return previewData.news;
   return query<NewsRow>(
     `SELECT id, cell, title, body_md, published_at
        FROM cassets.v_portal_news
