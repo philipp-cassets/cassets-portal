@@ -112,7 +112,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={interTight.variable}>
+      <body className={`${interTight.className} ${interTight.variable}`}>
         <script
           dangerouslySetInnerHTML={{
             __html: isPreview()

@@ -679,7 +679,7 @@ body[data-sidebar="collapsed"] .side-search .ss-kbd {
 }
 .kpi-value {
   font-size: clamp(44px, 6vw, 76px);
-  font-weight: 500;
+  font-weight: 650;
   line-height: 1.02;
   letter-spacing: -0.025em;
   font-variant-numeric: tabular-nums;
@@ -1601,4 +1601,15 @@ body[data-sidebar="collapsed"] .side-search .ss-kbd {
   .kpi-value .unit {
     font-size: 16px;
   }
+}
+
+/* Bulletproof font application: appended last so no earlier parse error can
+   swallow it; var() carries an inline fallback so an undefined custom
+   property can never invalidate the declaration into the browser serif default. */
+body,
+button,
+input,
+select,
+textarea {
+  font-family: var(--font-inter-tight, "Inter Tight"), "Inter Tight", ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
 }
