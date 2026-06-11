@@ -30,7 +30,6 @@ const NAV = [
     id: "chain", label: "On-chain Transparency", icon: IcoShield, expandable: true, ticks: true,
     children: [
       { label: "Wallet Registry" },
-      { label: "Staking Positions" },
       { label: "Venue Balances" },
       { label: "Proof of Reserves" },
     ],

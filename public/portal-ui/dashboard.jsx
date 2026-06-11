@@ -2,7 +2,7 @@
 
 (function () {
   const { useState, useEffect, useRef, useMemo } = React;
-  const { FIGURES, SEGMENTS, LEDGER, NAV_POINTS, parts, full, group } = PortalData;
+  const { FIGURES, LEDGER, NAV_POINTS, parts, full, group } = PortalData;
 
   /* ---------- count-up hook (expo-out, 0.9s) ---------- */
   function useCountUp(target, duration = 900, delay = 300) {
@@ -155,16 +155,29 @@
     const min = series.length ? Math.min.apply(null, series.map((p) => p.nav)) : 0;
     const max = Math.max(min + 0.000001, series.length ? Math.max.apply(null, series.map((p) => p.nav)) : 1);
 
-    const div1 = width * 0.42;
-    const div2 = width * 0.80;
+    // DELTA-LOCAL §7: curtain segments are CALENDAR MONTHS of the charted
+    // window, never strategy allocations. Dividers sit on month boundaries;
+    // each label shows the month and its NAV change within the window.
+    const months = useMemo(() => {
+      const out = [];
+      series.forEach((pt, i) => {
+        const key = pt.date.getFullYear() * 12 + pt.date.getMonth();
+        const last = out[out.length - 1];
+        if (last && last.key === key) last.end = i;
+        else out.push({ key, start: i, end: i, date: pt.date });
+      });
+      return out;
+    }, [n, width, pitch, denom]);
 
+    const TONES = ["default", "olive", "light"];
     const strokes = useMemo(() => {
+      let m = 0;
       return series.map((pt, i) => {
+        while (m < months.length - 1 && i >= months[m + 1].start) m++;
         const x = i * pitch;
         const norm = Math.max(0, Math.min(1, (pt.nav - min) / (max - min)));
         const len = (0.55 + 0.45 * norm) * BAND_H;
-        const tone = x >= div2 ? "light" : x >= div1 ? "olive" : "default";
-        return { x, len, tone, pt, i };
+        return { x, len, tone: TONES[m % 3], pt, i };
       });
     }, [n, width, pitch, denom]);
 
@@ -181,11 +194,21 @@
     const fmtNav = (nav) =>
       SER.unit === "NEAR" ? nav.toFixed(4) + " NEAR" : "$ " + nav.toFixed(4);
 
-    const labels = [
-      { name: SEGMENTS[0].name, share: SEGMENTS[0].share, left: 12 },
-      { name: SEGMENTS[1].name, share: SEGMENTS[1].share, left: div1 + 14 },
-      { name: SEGMENTS[2].name, share: SEGMENTS[2].share, left: div2 + 14 },
-    ];
+    // Month labels: name + NAV change over the month's strokes in the
+    // window. Labels on segments too narrow to carry them are skipped.
+    const labels = months
+      .map((m, mi) => {
+        const first = series[m.start].nav;
+        const last = series[m.end].nav;
+        const pct = first ? (last / first - 1) * 100 : 0;
+        return {
+          name: MONTHS[m.date.getMonth()] + " " + m.date.getFullYear(),
+          chg: (pct >= 0 ? "+" : "−") + Math.abs(pct).toFixed(2) + "%",
+          left: m.start * pitch + (mi === 0 ? 12 : 14),
+          w: (m.end - m.start + 1) * pitch,
+        };
+      })
+      .filter((l) => l.w >= 90);
 
     return (
       <div className="barcode" ref={wrapRef} onMouseMove={onMove} onMouseLeave={() => setHover(null)} data-screen-label="Barcode chart">
@@ -233,15 +256,16 @@
             ></rect>
           ))}
 
-          {/* epoch dividers: band height + 90px */}
-          <line x1={div1} y1="0" x2={div1} y2={SVG_H} stroke="#05050C" strokeWidth="1"></line>
-          <line x1={div2} y1="0" x2={div2} y2={SVG_H} stroke="#05050C" strokeWidth="1"></line>
+          {/* month dividers: band height + 90px */}
+          {months.slice(1).map((m) => (
+            <line key={m.key} x1={m.start * pitch} y1="0" x2={m.start * pitch} y2={SVG_H} stroke="#05050C" strokeWidth="1"></line>
+          ))}
         </svg>
 
         {labels.map((l) => (
           <div className="seg-label" key={l.name + l.left} style={{ left: l.left + "px" }}>
             <div className="nm">{l.name}</div>
-            <div className="sh tnum">{l.share}%</div>
+            <div className="sh tnum">{l.chg}</div>
           </div>
         ))}
 

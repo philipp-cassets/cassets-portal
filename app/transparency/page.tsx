@@ -18,7 +18,7 @@ export default function TransparencyPage() {
         <p>
           cAssets is a multi-cell asset management platform incorporated in
           Jersey. Each cell holds a defined asset strategy; the first cell,
-          cNEAR, holds NEAR tokens under institutional custody with staking.
+          cNEAR, holds NEAR tokens under institutional custody.
         </p>
         <p>
           We are building on-chain attestation reporting: independently

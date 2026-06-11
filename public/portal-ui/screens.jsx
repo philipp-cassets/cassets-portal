@@ -56,32 +56,36 @@
 
   /* ---------- My Positions ---------- */
   function PositionsScreen({ denom }) {
-    // MOCK: strategy-allocation sleeves have no portal view; prototype values
-    // stay until the desk exposes one (see MOCK-FED INVENTORY in route.ts).
-    const rows = [
-      { sleeve: "Covered Calls", figure: 28500, share: "42%", note: "46 short calls across 9 expiries" },
-      { sleeve: "Staking Yield", figure: 35200, share: "38%", note: "4 validators · rewards auto-compound" },
-      { sleeve: "Unencumbered", figure: 24300, share: "20%", note: "free collateral, deployable" },
-    ];
-    const GRID = "1.2fr 200px 110px 1.6fr";
+    // REAL per-share-class holdings (v_portal_position via the bridge).
+    // DELTA-LOCAL §7: no strategy composition reaches the portal — one row
+    // per HELD class; units, NAV/unit and value render in the class's OWN
+    // denomination (the page toggle never converts).
+    const rows = P.MY_POSITIONS;
+    const GRID = "1.2fr 170px 170px 200px 160px";
+    const subtitle =
+      (rows.length === 1 ? "1 share class" : rows.length + " share classes") +
+      " · NAV/unit " + P.FIGURES.navPerUnit[denom];
     return (
       <section>
-        <ScreenHead title="My Positions" sub={"3 sleeves · NAV/unit " + P.FIGURES.navPerUnit[denom]}></ScreenHead>
+        <ScreenHead title="My Positions" sub={subtitle}></ScreenHead>
         <div className="pt-tbl">
           <div className="pt-th" style={{ gridTemplateColumns: GRID }}>
-            <span>Sleeve</span><span style={{ textAlign: "right" }}>Value</span>
-            <span style={{ textAlign: "right" }}>Share</span><span>Detail</span>
+            <span>Share class</span><span style={{ textAlign: "right" }}>Units</span>
+            <span style={{ textAlign: "right" }}>NAV / unit</span>
+            <span style={{ textAlign: "right" }}>Value</span>
+            <span style={{ textAlign: "right" }}>Since inception</span>
           </div>
           {rows.map((r, i) => (
             <div key={i} className="pt-tr" style={{ gridTemplateColumns: GRID, height: "60px" }}>
-              <span style={{ fontWeight: 500 }}>{r.sleeve}</span>
-              <span className="num tnum" style={{ fontWeight: 600 }}>{P.full(r.figure, denom)}</span>
-              <span className="num tnum dim">{r.share}</span>
-              <span className="dim">{r.note}</span>
+              <span style={{ fontWeight: 500 }}>{r.label}</span>
+              <span className="num tnum">{P.group(String(Math.round(r.units)))}</span>
+              <span className="num tnum">{r.unitStr}</span>
+              <span className="num tnum" style={{ fontWeight: 600 }}>{fmtAmt(r.value)}</span>
+              <span className={"num tnum" + (r.since.charAt(0) === "+" ? " sage-txt" : " dim")}>{r.since}</span>
             </div>
           ))}
         </div>
-        <div className="pt-note">Sleeve values update at each weekly NAV strike. Intraday figures are indicative.</div>
+        <div className="pt-note">Values update at each weekly NAV strike.</div>
       </section>
     );
   }
@@ -246,20 +250,6 @@
                 <span>{w.label}</span>
                 <span className="mono">{w.addr}</span>
                 <span style={{ textAlign: "right" }}><Caps>{w.kind}</Caps></span>
-              </div>
-            ))}
-          </div>
-        ) : null}
-        {tab === "Staking Positions" ? (
-          <div className="pt-tbl">
-            <div className="pt-th" style={{ gridTemplateColumns: "1.4fr 200px 110px" }}>
-              <span>Validator pool</span><span style={{ textAlign: "right" }}>Staked</span><span style={{ textAlign: "right" }}>APY</span>
-            </div>
-            {P.CHAIN_STAKING.map((s, i) => (
-              <div key={i} className="pt-tr" style={{ gridTemplateColumns: "1.4fr 200px 110px" }}>
-                <span className="mono">{s.pool}</span>
-                <span className="num tnum">{nearStr(s.staked)}</span>
-                <span className="num tnum dim">{s.apy}</span>
               </div>
             ))}
           </div>

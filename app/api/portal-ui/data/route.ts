@@ -36,13 +36,11 @@ import {
  * mode renders it unchanged with its own suffix.
  *
  * MOCK-FED INVENTORY (v3 surfaces; everything else is real):
- *  - segments / dashboard barcode epoch labels: strategy allocation
- *    (Covered Calls / Staking / Unencumbered) has no portal view.
- *  - My Positions sleeve rows: same gap (mock lives in screens.jsx, tagged).
- *  - On-chain Transparency (all four tabs): REAL data exists desk-side but
- *    venues/balances are not granted to cassets_portal; needs a DESK-SIDE
- *    migration adding a curated aggregate-safe view (v_portal_transparency)
- *    before this can be bridged. Until then prototype values stay.
+ *  - On-chain Transparency (wallet registry, venue balances, proof of
+ *    reserves): REAL data exists desk-side but venues/balances are not
+ *    granted to cassets_portal; needs a DESK-SIDE migration adding a curated
+ *    aggregate-safe view (v_portal_transparency) before this can be bridged.
+ *    Until then prototype values stay.
  *  - Dashboard sidebar badge "2" (components.jsx NAV): decorative prototype
  *    count, no backing figure.
  *  - Statement file sizes: v_portal_documents exposes no byte size; the
@@ -53,6 +51,17 @@ import {
  *    server-persisted per-auth-user read-state (portal_mark_notification_read
  *    / portal_mark_all_read behind /api/portal-ui/notifications/read and
  *    /read-all); the localStorage merge is gone.
+ * Removed from the inventory as POLICY-EXCLUDED, not pending (DELTA-LOCAL §7,
+ * strategy confidentiality: investors never see yield-strategy composition):
+ *  - Dashboard barcode segment labels: the strategy-allocation segments
+ *    payload is gone and will never be bridged; the curtain labels are now
+ *    calendar months + month NAV change from the real published series
+ *    (dashboard.jsx).
+ *  - My Positions sleeve rows: replaced by REAL per-share-class rows
+ *    (myPositions below, from the v_portal_position shapes). Sleeve and
+ *    strategy detail (v_sleeves) is desk-only.
+ *  - On-chain Transparency validator/pool tab: removed outright (screens.jsx
+ *    + sidebar); pool-level detail is desk-only.
  */
 
 export const dynamic = "force-dynamic";
@@ -279,6 +288,29 @@ export async function GET() {
       };
     }),
   ];
+
+  // My Positions rows (REAL, DELTA-LOCAL §7): one row per HELD share class.
+  // Units, NAV/unit and value all in the class's OWN denomination (never
+  // converted); since-inception = last published NAV over the earliest
+  // available strike of the charted series. No strategy composition is ever
+  // sent to the portal.
+  const myPositions = positions.map((p) => {
+    const hist = histories.get(`${p.cell}::${p.share_class}`) ?? [];
+    const first = hist.length ? Number(hist[0].nav_per_unit) : NaN;
+    const last = Number(p.nav_per_unit);
+    const since =
+      Number.isFinite(first) && Number.isFinite(last) && first !== 0
+        ? pctStr(last / first - 1)
+        : null;
+    return {
+      label: `Class ${p.share_class} · ${p.denomination}`,
+      units: Number(p.units),
+      unitStr:
+        p.denomination === "NEAR" ? `${last.toFixed(4)} NEAR` : `$ ${last.toFixed(4)}`,
+      value: { v: Number(p.value), unit: p.denomination },
+      since: since ?? "—",
+    };
+  });
 
   // Barcode series per denomination (published NAV per unit, v_portal_nav).
   const seriesOf = (d: Denom) => {
@@ -533,13 +565,7 @@ export async function GET() {
       delta24h: dualStr(pctStr(dayRatio(histUSD)), pctStr(dayRatio(histNEAR))),
       positions: sleeves,
     },
-    // MOCK: strategy-allocation segments (Covered Calls / Staking /
-    // Unencumbered) have no portal view; prototype values stay.
-    segments: [
-      { name: "Covered Calls", share: 42, tone: "default" },
-      { name: "Staking", share: 38, tone: "olive" },
-      { name: "Unencumbered", share: 20, tone: "light" },
-    ],
+    myPositions,
     navSeries,
     navTable,
     ledger,
@@ -549,21 +575,16 @@ export async function GET() {
     notifs,
     docs,
     distributions,
-    // MOCK: on-chain transparency (wallet registry, staking, venue balances,
-    // proof of reserves). The desk DB holds the real venues/balances but the
+    // MOCK: on-chain transparency (wallet registry, venue balances, proof of
+    // reserves). The desk DB holds the real venues/balances but the
     // cassets_portal role is not granted on them; exposing a curated,
     // aggregate-safe v_portal_transparency view needs a DESK-SIDE migration
     // (flagged in the MOCK-FED INVENTORY). Prototype values stay until then.
+    // DELTA-LOCAL §7: the pool/validator tab and its payload are gone.
     wallets: [
       { label: "Custody — Sygnum", addr: "cassets-custody.near", kind: "CUSTODY" },
-      { label: "Staking proxy", addr: "cassets-staking.near", kind: "ON-CHAIN" },
+      { label: "On-chain treasury", addr: "cassets-treasury.near", kind: "ON-CHAIN" },
       { label: "Settlement — USDC", addr: "0x8f3C…9A41", kind: "SETTLEMENT" },
-    ],
-    chainStaking: [
-      { pool: "meta-pool.near", staked: 2400000, apy: "8.9%" },
-      { pool: "astro-stakers.poolv1.near", staked: 1800000, apy: "8.7%" },
-      { pool: "figment.poolv1.near", staked: 1400000, apy: "8.4%" },
-      { pool: "zavodil.poolv1.near", staked: 1200000, apy: "8.6%" },
     ],
     chainVenues: [
       { name: "Sygnum Custody", near: 16300000, verified: "Jun 9, 18:00" },

@@ -331,8 +331,10 @@ export const previewData = {
 
   news: [
     {
-      id: "news-1", cell: "CNEAR", title: "cNEAR commences covered-call programme",
-      body_md: "The cell has begun writing covered calls against its NEAR treasury under the investment guidelines ratified in May. Premium income will be reflected in the monthly NAV, with the first full month reported in the June statement.\n\nThe desk operates under counterparty and tenor limits reviewed quarterly.",
+      // DELTA-LOCAL §7: fixture copy is strategy-neutral; investors never see
+      // yield-strategy composition anywhere client-facing.
+      id: "news-1", cell: "CNEAR", title: "cNEAR completes first full NAV cycle",
+      body_md: "The cell's weekly NAV strikes are now published every Friday, with the monthly statement following in the first week of the new month. Yield earned by the cell is reflected in the published NAV.\n\nThe cell operates under investment guidelines ratified in May, with limits reviewed quarterly.",
       published_at: "2026-06-05T09:00:00Z",
     },
     {
