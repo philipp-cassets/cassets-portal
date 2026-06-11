@@ -261,21 +261,11 @@ export default async function Home() {
         <h2 className="sec-h">
           Three yield engines, actively managed in one certificate.
         </h2>
-        {/* The mobile design carries the later copy revision (tokenisation
-            stated up front); the desktop text stays frozen to keep the live
-            1680px rendering byte-identical. */}
         <p className="sec-sub">
-          <span className="m-copy">
-            A tokenised certificate: the strategy is issued on-chain, and the
-            portfolio allocates across staking, a multi-leg options program,
-            and structured products, delta-managed to retain upside that
-            single-leg covered calls give away.
-          </span>
-          <span className="d-copy">
-            The portfolio allocates across staking, a multi-leg options
-            program, and structured products, delta-managed to retain upside
-            that single-leg covered calls give away.
-          </span>
+          A tokenised certificate: the strategy is issued on-chain, and the
+          portfolio allocates across staking, a multi-leg options program,
+          and structured products, delta-managed to retain upside that
+          single-leg covered calls give away.
         </p>
         <div className="alloc" id="alloc">
           <AllocSegments />
@@ -299,12 +289,7 @@ export default async function Home() {
           <div className="stat">
             <div className="stat-n">Monthly</div>
             <div className="stat-l">NAV-priced redemptions</div>
-            <div className="stat-d">
-              <span className="m-copy">
-                subscribe and redeem at published NAV
-              </span>
-              <span className="d-copy">25% gate per redemption window</span>
-            </div>
+            <div className="stat-d">subscribe and redeem at published NAV</div>
           </div>
         </div>
       </section>
