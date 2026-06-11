@@ -275,11 +275,6 @@ export default async function Home() {
         </div>
         <div className="stat-row">
           <div className="stat">
-            <div className="stat-n">~17%</div>
-            <div className="stat-l">Target gross yield</div>
-            <div className="stat-d">above simply holding NEAR</div>
-          </div>
-          <div className="stat">
             <div className="stat-n">~12.6%</div>
             <div className="stat-l">Net to certificate holder</div>
             <div className="stat-d">

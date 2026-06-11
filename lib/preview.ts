@@ -19,7 +19,14 @@ import type {
  * Neon Auth are live. No fixture ever reaches production builds because the
  * env var simply is not set there; the guard lives at each call site.
  */
-export const isPreview = () => process.env.PORTAL_PREVIEW === "1";
+import { AsyncLocalStorage } from "async_hooks";
+
+/** Request-scoped demo flag: /demo serves fixture data in production without
+ *  touching env (safe under concurrent requests, unlike env mutation). */
+export const demoContext = new AsyncLocalStorage<boolean>();
+
+export const isPreview = () =>
+  process.env.PORTAL_PREVIEW === "1" || demoContext.getStore() === true;
 
 export const PREVIEW_INVESTOR_ID = "00000000-0000-0000-0000-00000000cafe";
 

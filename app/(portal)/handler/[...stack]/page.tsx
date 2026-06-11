@@ -38,6 +38,14 @@ export default function Handler(props: unknown) {
             </a>
             .
           </div>
+          <div style={{ marginTop: 18 }}>
+            <a
+              href="/demo"
+              style={{ fontSize: 13.5, color: "#05050C", textDecoration: "underline", textUnderlineOffset: 3 }}
+            >
+              View a demonstration portal (fictitious data)
+            </a>
+          </div>
         </div>
       </div>
     );

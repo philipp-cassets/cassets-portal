@@ -15,7 +15,7 @@
   var payload = null;
   try {
     var xhr = new XMLHttpRequest();
-    xhr.open("GET", "/api/portal-ui/data", false); // sync: see header comment
+    xhr.open("GET", (window.__PORTAL_DATA_URL || "/api/portal-ui/data"), false); // sync: see header comment; __PORTAL_DATA_URL set only by the /demo route (fixture data)
     xhr.send(null);
     if (xhr.status === 401) { window.location.href = "/handler/sign-in"; return; }
     if (xhr.status === 403) { window.location.href = "/"; return; }

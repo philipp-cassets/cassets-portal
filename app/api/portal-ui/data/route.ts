@@ -169,12 +169,25 @@ function windowLabel(hists: NavRow[][]): string {
   return `${m(f)}–${m(l)} ${l.getUTCFullYear()}`;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  // --- demo mode: public, fixture data ONLY, zero DB access, zero session ---
+  // Served exclusively for /demo (fictitious "Pemberton" book). The flag runs
+  // the whole handler inside demoContext so every lib/data.ts read serves
+  // fixtures; the real investor payload path is untouched and session-gated.
+  const isDemo = new URL(request.url).searchParams.get("demo") === "1";
+  if (isDemo) {
+    const { demoContext } = await import("@/lib/preview");
+    return demoContext.run(true, () => handle(true));
+  }
+  return handle(false);
+}
+
+async function handle(demo: boolean) {
   // --- session (never the request) ---
   let authUserId: string;
   let displayName: string;
   let investorId: string | null;
-  if (isPreview()) {
+  if (demo || isPreview()) {
     authUserId = previewSession.authUserId;
     displayName = previewSession.displayName;
     investorId = previewSession.investorId;
@@ -193,7 +206,9 @@ export async function GET() {
 
   // Access log: the prototype page itself is static chrome; its single data
   // load is the page view (same lib/log.ts pattern as documents_page_view).
-  logAccess(authUserId, investorId, "portal_page_view", "portal_ui");
+  if (!demo) {
+    logAccess(authUserId, investorId, "portal_page_view", "portal_ui");
+  }
 
   const positions = await getPositions(investorId);
   const cells = [...new Set(positions.map((p) => p.cell))];
@@ -546,7 +561,7 @@ export async function GET() {
       name: displayName,
       // No investor code exists in the portal views; derive a stable code
       // from the real investor row id (fixture code in preview).
-      code: isPreview() ? "@CN-0042" : `@${investorId.split("-")[0].toUpperCase()}`,
+      code: demo || isPreview() ? "@CN-0042" : `@${investorId.split("-")[0].toUpperCase()}`,
       initials: monogram(displayName),
     },
     header: {
