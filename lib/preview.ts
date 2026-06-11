@@ -8,6 +8,8 @@ import type {
   CellStatsRow,
   RedemptionRequestRow,
   SubscriptionRequestRow,
+  DistributionRow,
+  NotificationRow,
 } from "./data";
 
 /**
@@ -43,6 +45,46 @@ function navSeries(start: number, drift: number, days: number): NavRow[] {
   }
   return rows;
 }
+
+/* Notification fixtures (migration 014 shape). Read-state is mutable
+   module-level state so the preview read routes behave like the real
+   server-persisted store within a dev-server process: a mark-read POST
+   survives the next page load. Notification 1 starts read (4 rows, 1 read). */
+const PREVIEW_NOTIFICATIONS: Omit<NotificationRow, "read">[] = [
+  {
+    id: "4",
+    kind: "nav_published",
+    title: "Weekly NAV published — Class N",
+    body: null,
+    ref: null,
+    created_at: "2026-06-10T07:00:00Z",
+  },
+  {
+    id: "3",
+    kind: "order_decided",
+    title: "Subscription SUBR-2026-0004 approved",
+    body: null,
+    ref: "SUBR-2026-0004",
+    created_at: "2026-06-06T10:05:00Z",
+  },
+  {
+    id: "2",
+    kind: "distribution",
+    title: "Distribution DIST-2026-0005 paid",
+    body: null,
+    ref: "DIST-2026-0005",
+    created_at: "2026-06-02T12:00:00Z",
+  },
+  {
+    id: "1",
+    kind: "statement_issued",
+    title: "May 2026 statement available",
+    body: null,
+    ref: "doc-1",
+    created_at: "2026-06-01T09:00:00Z",
+  },
+];
+const previewReadIds = new Set<string>(["1"]);
 
 const navN = navSeries(1.0, 0.0011, 60);
 const navU = navSeries(1.0, 0.0008, 60).map((r) => ({ ...r, share_class: "U" }));
@@ -238,6 +280,46 @@ export const previewData = {
     amount_near: amountNear != null ? String(amountNear) : null,
     status: "requested" as const,
   }),
+
+  /* v_portal_distributions fixtures (migration 014). Amounts carry the class
+     denomination — exactly one of amount_usd / amount_near, never converted.
+     Paid Class N row: 0.0120 NEAR/unit × 2,500,000 held units = 30,000 NEAR. */
+  distributions: [
+    {
+      investor_id: PREVIEW_INVESTOR_ID,
+      ref: "DIST-2026-0006",
+      record_date: "2026-06-26",
+      pay_date: "2026-07-02",
+      description: "June distribution — Class U",
+      amount_usd: "9800.00",
+      amount_near: null,
+      status: "declared",
+    },
+    {
+      investor_id: PREVIEW_INVESTOR_ID,
+      ref: "DIST-2026-0005",
+      record_date: "2026-05-29",
+      pay_date: "2026-06-02",
+      description: "May distribution — Class N · 0.0120 NEAR/unit",
+      amount_usd: null,
+      amount_near: "30000",
+      status: "paid",
+    },
+  ] as DistributionRow[],
+
+  /** cassets.portal_notifications fixture rows with the mutable read-state applied. */
+  notifications: (): NotificationRow[] =>
+    PREVIEW_NOTIFICATIONS.map((n) => ({ ...n, read: previewReadIds.has(n.id) })),
+
+  /** Readback stub for POST /api/portal-ui/notifications/read in preview. */
+  markNotificationRead: (id: string): void => {
+    if (PREVIEW_NOTIFICATIONS.some((n) => n.id === id)) previewReadIds.add(id);
+  },
+
+  /** Readback stub for POST /api/portal-ui/notifications/read-all in preview. */
+  markAllNotificationsRead: (): void => {
+    for (const n of PREVIEW_NOTIFICATIONS) previewReadIds.add(n.id);
+  },
 
   nav: { N: navN, U: navU } as Record<string, NavRow[]>,
 

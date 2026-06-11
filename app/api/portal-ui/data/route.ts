@@ -12,6 +12,8 @@ import {
   getNews,
   getRedemptionRequests,
   getSubscriptionRequests,
+  getDistributions,
+  getNotifications,
   type NavRow,
   type PositionRow,
   type ActivityRow,
@@ -33,22 +35,24 @@ import {
  * real denomination, that value+unit is carried under both keys so the other
  * mode renders it unchanged with its own suffix.
  *
- * MOCK-FED INVENTORY (v2 surfaces; everything else is real):
+ * MOCK-FED INVENTORY (v3 surfaces; everything else is real):
  *  - segments / dashboard barcode epoch labels: strategy allocation
  *    (Covered Calls / Staking / Unencumbered) has no portal view.
  *  - My Positions sleeve rows: same gap (mock lives in screens.jsx, tagged).
- *  - Subscriptions & Redemptions → Distributions: no distributions surface.
  *  - On-chain Transparency (all four tabs): REAL data exists desk-side but
  *    venues/balances are not granted to cassets_portal; needs a DESK-SIDE
  *    migration adding a curated aggregate-safe view (v_portal_transparency)
  *    before this can be bridged. Until then prototype values stay.
- *  - Notification backend: source rows are REAL (published news 30d +
- *    document publications) but persistent read-state and event types are
- *    absent; read-state is client-side localStorage only.
  *  - Dashboard sidebar badge "2" (components.jsx NAV): decorative prototype
  *    count, no backing figure.
  *  - Statement file sizes: v_portal_documents exposes no byte size; the
  *    column shows the file kind ("PDF") instead.
+ * Removed from the inventory by desk-side migration 014:
+ *  - Distributions: now REAL via cassets.v_portal_distributions.
+ *  - Notifications: now REAL via cassets.portal_notifications, with
+ *    server-persisted per-auth-user read-state (portal_mark_notification_read
+ *    / portal_mark_all_read behind /api/portal-ui/notifications/read and
+ *    /read-all); the localStorage merge is gone.
  */
 
 export const dynamic = "force-dynamic";
@@ -186,13 +190,15 @@ export async function GET() {
   const cells = [...new Set(positions.map((p) => p.cell))];
 
   const histories = new Map<string, NavRow[]>();
-  const [cellStats, activity, documents, news, redemptionRequests, subscriptionRequests] = await Promise.all([
+  const [cellStats, activity, documents, news, redemptionRequests, subscriptionRequests, distributionRows, notificationRows] = await Promise.all([
     cells.length > 0 ? getCellStats(cells) : Promise.resolve([]),
     getActivity(investorId),
     getDocuments(investorId),
     getNews(cells),
     getRedemptionRequests(investorId),
     getSubscriptionRequests(investorId),
+    getDistributions(investorId),
+    getNotifications(investorId, authUserId),
     ...positions.map(async (p) => {
       // 420 = the prototype barcode's stroke capacity (MAX_STROKES)
       histories.set(`${p.cell}::${p.share_class}`, await getNavHistory(p.cell, p.share_class, 420));
@@ -463,30 +469,34 @@ export async function GET() {
       .map(docRow),
   };
 
-  // --- Notifications (REAL source, no backend read-state) ------------------
-  // Published news (30d) + recent document publications as notification rows;
-  // read-state lives in localStorage client-side (see MOCK-FED INVENTORY).
-  const notifCutoff = now.getTime() - 30 * 86400000;
-  const docCutoff = now.getTime() - 45 * 86400000;
-  const notifRows = [
-    ...news
-      .filter((p) => new Date(p.published_at).getTime() >= notifCutoff)
-      .map((p) => ({
-        id: `news-${p.id}`,
-        t: p.title,
-        d: fmtDay(p.published_at),
-        _t: ts(p.published_at),
-      })),
-    ...documents
-      .filter((d) => d.doc_type === "statement" && d.period_end && ts(d.period_end) >= docCutoff)
-      .map((d) => ({
-        id: `doc-${d.id}`,
-        t: `${d.filename.replace(/\.pdf$/i, "").replace(/_/g, " ")} available`,
-        d: fmtDay(d.period_end as string),
-        _t: ts(d.period_end as string),
-      })),
-  ].sort((a, b) => b._t - a._t);
-  const notifs = notifRows.map(({ _t: _drop, ...n }) => n);
+  // --- Notifications (REAL, migration 014) ---------------------------------
+  // cassets.portal_notifications(investor, auth_user): event rows with
+  // server-persisted per-auth-user read-state. Same {id, t, d, read} shape
+  // the header dropdown consumes; mark-read goes through
+  // /api/portal-ui/notifications/read + /read-all.
+  const notifs = notificationRows.map((n) => ({
+    id: n.id,
+    kind: n.kind,
+    t: n.title,
+    d: fmtDay(n.created_at),
+    read: n.read,
+  }));
+
+  // --- Distributions (REAL, migration 014) ---------------------------------
+  // cassets.v_portal_distributions: each amount exists in exactly ONE
+  // denomination (the class's own — amount_usd xor amount_near), carried as
+  // {v, unit} so the screen renders it unchanged whatever the page toggle.
+  const distributions = distributionRows.map((d) => ({
+    ref: d.ref,
+    recordDate: fmtShort(d.record_date),
+    payDate: fmtShort(d.pay_date),
+    desc: d.description,
+    amount:
+      d.amount_near != null
+        ? { v: Number(d.amount_near), unit: "NEAR" }
+        : { v: Number(d.amount_usd ?? 0), unit: "USD" },
+    status: d.status === "paid" ? "PAID" : "DECLARED",
+  }));
 
   // Header date-range presets (display state; each maps to a §4 timeframe so
   // selection also windows the real NAV series where cheap).
@@ -538,14 +548,7 @@ export async function GET() {
     orderClasses,
     notifs,
     docs,
-    // MOCK: monthly distributions — no distributions surface exists in the
-    // portal schema; prototype values stay (see MOCK-FED INVENTORY).
-    distributions: [
-      { date: "Jun 2, 2026", desc: "Monthly distribution — May", amount: 12500 },
-      { date: "May 4, 2026", desc: "Monthly distribution — April", amount: 11840 },
-      { date: "Apr 6, 2026", desc: "Monthly distribution — March", amount: 10920 },
-      { date: "Mar 2, 2026", desc: "Monthly distribution — February", amount: 9870 },
-    ],
+    distributions,
     // MOCK: on-chain transparency (wallet registry, staking, venue balances,
     // proof of reserves). The desk DB holds the real venues/balances but the
     // cassets_portal role is not granted on them; exposing a curated,

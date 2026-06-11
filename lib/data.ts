@@ -145,6 +145,93 @@ export async function getSubscriptionRequests(
   );
 }
 
+export type DistributionRow = {
+  investor_id: string;
+  ref: string;
+  record_date: string;
+  pay_date: string | null;
+  description: string;
+  /** Exactly one of amount_usd / amount_near is set — the class denomination. */
+  amount_usd: string | null;
+  amount_near: string | null;
+  status: "declared" | "paid" | string;
+};
+
+/** Desk-side migration 014: v_portal_distributions. */
+export async function getDistributions(
+  investorId: string
+): Promise<DistributionRow[]> {
+  if (isPreview()) return previewData.distributions;
+  return query<DistributionRow>(
+    `SELECT investor_id, ref, record_date, pay_date, description,
+            amount_usd, amount_near, status
+       FROM cassets.v_portal_distributions
+      WHERE investor_id = $1
+      ORDER BY record_date DESC, ref DESC`,
+    [investorId]
+  );
+}
+
+export type NotificationRow = {
+  /** bigint — arrives from pg as a numeric string. */
+  id: string;
+  kind: "nav_published" | "statement_issued" | "order_decided" | "distribution" | "news" | string;
+  title: string;
+  body: string | null;
+  ref: string | null;
+  created_at: string;
+  /** Read-state is server-persisted PER AUTH USER (migration 014). */
+  read: boolean;
+};
+
+/**
+ * Desk-side migration 014: SECURITY DEFINER cassets.portal_notifications.
+ * Both the investor id (session-mapped) and the auth user (read-state owner)
+ * come from the session, never from the request.
+ */
+export async function getNotifications(
+  investorId: string,
+  authUserId: string
+): Promise<NotificationRow[]> {
+  if (isPreview()) return previewData.notifications();
+  return query<NotificationRow>(
+    `SELECT id, kind, title, body, ref, created_at, read
+       FROM cassets.portal_notifications($1, $2)
+      ORDER BY created_at DESC`,
+    [investorId, authUserId]
+  );
+}
+
+/** Migration 014: mark one notification read for this auth user. */
+export async function markNotificationRead(
+  authUserId: string,
+  notificationId: string
+): Promise<void> {
+  if (isPreview()) {
+    previewData.markNotificationRead(notificationId);
+    return;
+  }
+  await query(`SELECT cassets.portal_mark_notification_read($1, $2)`, [
+    authUserId,
+    notificationId,
+  ]);
+}
+
+/** Migration 014: mark all of the investor's notifications read for this auth user. */
+export async function markAllNotificationsRead(
+  authUserId: string,
+  investorId: string
+): Promise<void> {
+  if (isPreview()) {
+    previewData.markAllNotificationsRead();
+    return;
+  }
+  await query(`SELECT cassets.portal_mark_all_read($1, $2)`, [
+    authUserId,
+    investorId,
+  ]);
+}
+
 export type NavRow = {
   cell: string;
   share_class: string;

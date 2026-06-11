@@ -163,8 +163,8 @@ function Header({ denom, onFlip, period, onPeriod }) {
   const [notifs, setNotifs] = useState(PortalData.NOTIFS);
   const [panel, setPanel] = useState(null); // 'date' | 'notif' | null
   const unread = notifs.filter((n) => !n.read).length;
-  // Read-state persists in localStorage only (no notification backend).
-  useEffect(() => { PortalData.saveNotifRead(notifs); }, [notifs]);
+  // Read-state is server-persisted per auth user (migration 014); the POSTs
+  // are fire-and-forget and the dropdown updates optimistically.
   return (
     <header className="header" data-screen-label="Header">
       <div className="hl">
@@ -226,7 +226,10 @@ function Header({ denom, onFlip, period, onPeriod }) {
               <div className="dd-panel" style={{ minWidth: "340px" }}>
                 {notifs.map((n, i) => (
                   <div key={i} className={"dd-row" + (n.read ? "" : " unread")}
-                    onClick={() => setNotifs((xs) => xs.map((x, j) => j === i ? { ...x, read: true } : x))}>
+                    onClick={() => {
+                      if (!n.read) PortalData.markNotifRead(n.id);
+                      setNotifs((xs) => xs.map((x, j) => j === i ? { ...x, read: true } : x));
+                    }}>
                     <span style={{ display: "inline-flex", alignItems: "center", gap: "10px", minWidth: 0 }}>
                       {!n.read ? <span className="udot"></span> : null}
                       <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{n.t}</span>
@@ -235,7 +238,10 @@ function Header({ denom, onFlip, period, onPeriod }) {
                   </div>
                 ))}
                 <div className="dd-foot">
-                  <button className="pt-quiet" onClick={() => setNotifs((xs) => xs.map((x) => ({ ...x, read: true })))}>Mark all read</button>
+                  <button className="pt-quiet" onClick={() => {
+                    PortalData.markAllNotifsRead();
+                    setNotifs((xs) => xs.map((x) => ({ ...x, read: true })));
+                  }}>Mark all read</button>
                 </div>
               </div>
             </React.Fragment>

@@ -198,17 +198,31 @@
           </div>
         ) : null}
         {tab === "Distributions" ? (
+          // Real v_portal_distributions rows from the bridge. Each amount is
+          // {v, unit} in the class's OWN denomination (amount_usd xor
+          // amount_near, never converted; the page toggle plays no part).
+          // Status: DECLARED stays muted caps, PAID renders sage.
           <div className="pt-tbl">
-            <div className="pt-th" style={{ gridTemplateColumns: "150px 1fr 180px" }}>
-              <span>Date</span><span>Description</span><span style={{ textAlign: "right" }}>Amount</span>
-            </div>
-            {P.DISTRIBUTIONS.map((d, i) => (
-              <div key={i} className="pt-tr" style={{ gridTemplateColumns: "150px 1fr 180px" }}>
-                <span className="dim tnum">{d.date}</span>
-                <span>{d.desc}</span>
-                <span className="num tnum" style={{ fontWeight: 600 }}>{P.full(d.amount, denom)}</span>
-              </div>
-            ))}
+            {P.DISTRIBUTIONS.length === 0 ? (
+              <div className="pt-note">No distributions have been declared yet.</div>
+            ) : (
+              <React.Fragment>
+                <div className="pt-th" style={{ gridTemplateColumns: "130px 130px 130px 1fr 180px 120px" }}>
+                  <span>Ref</span><span>Record date</span><span>Pay date</span><span>Description</span>
+                  <span style={{ textAlign: "right" }}>Amount</span><span style={{ textAlign: "right" }}>Status</span>
+                </div>
+                {P.DISTRIBUTIONS.map((d) => (
+                  <div key={d.ref} className="pt-tr" style={{ gridTemplateColumns: "130px 130px 130px 1fr 180px 120px" }}>
+                    <span className="tnum" style={{ fontWeight: 600 }}>{d.ref}</span>
+                    <span className="dim tnum">{d.recordDate}</span>
+                    <span className="dim tnum">{d.payDate}</span>
+                    <span>{d.desc}</span>
+                    <span className="num tnum" style={{ fontWeight: 600 }}>{fmtAmt(d.amount)}</span>
+                    <span style={{ textAlign: "right" }}><Caps tone={d.status === "PAID" ? "ok" : ""}>{d.status}</Caps></span>
+                  </div>
+                ))}
+              </React.Fragment>
+            )}
           </div>
         ) : null}
       </section>

@@ -90,21 +90,27 @@
     };
   });
 
-  // Notification read-state lives in localStorage only — there is no
-  // notification backend (see MOCK-FED INVENTORY in route.ts).
-  var READ_KEY = "cnear-portal-notifs-read";
-  var readIds = [];
-  try { readIds = JSON.parse(localStorage.getItem(READ_KEY)) || []; } catch (e) { /* noop */ }
+  // Notifications are REAL (cassets.portal_notifications via the bridge):
+  // read-state arrives server-persisted per auth user; the old localStorage
+  // merge is gone. Mark-read POSTs are fire-and-forget — the dropdown updates
+  // optimistically exactly as the prototype behaved.
   var NOTIFS = (payload.notifs || []).map(function (n) {
-    return { id: n.id, t: n.t, d: n.d, read: readIds.indexOf(n.id) !== -1 };
+    return { id: n.id, kind: n.kind, t: n.t, d: n.d, read: !!n.read };
   });
-  function saveNotifRead(notifs) {
+  function post(url, body) {
     try {
-      localStorage.setItem(
-        READ_KEY,
-        JSON.stringify(notifs.filter(function (n) { return n.read; }).map(function (n) { return n.id; }))
-      );
+      fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body || {}),
+      }).catch(function () { /* fire-and-forget */ });
     } catch (e) { /* noop */ }
+  }
+  function markNotifRead(id) {
+    post("/api/portal-ui/notifications/read", { id: id });
+  }
+  function markAllNotifsRead() {
+    post("/api/portal-ui/notifications/read-all");
   }
 
   window.PortalData = {
@@ -127,7 +133,8 @@
     POR: payload.por || [],
     DOCS: payload.docs || { statements: [], confirmations: [], tax: [] },
     NOTIFS: NOTIFS,
-    saveNotifRead: saveNotifRead,
+    markNotifRead: markNotifRead,
+    markAllNotifsRead: markAllNotifsRead,
     PERIODS: payload.periods || ["—"],
     PERIOD_TF: payload.periodTf || {},
     INVESTOR: payload.investor,
