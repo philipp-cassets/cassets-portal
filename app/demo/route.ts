@@ -14,9 +14,15 @@ export async function GET() {
     path.join(process.cwd(), "app", "portal", "index.html"),
     "utf8"
   );
+  // The prototype's tag is <body class="entering">; match any attributes and
+  // fail LOUDLY if the anchor ever disappears (a silent no-op here ships a
+  // broken demo, which happened once).
+  if (!/<body[^>]*>/.test(html)) {
+    throw new Error("demo injection anchor <body> not found in portal index.html");
+  }
   html = html.replace(
-    "<body>",
-    `<body><script>window.__PORTAL_DATA_URL="/api/portal-ui/data?demo=1";</script>` +
+    /<body([^>]*)>/,
+    `<body$1><script>window.__PORTAL_DATA_URL="/api/portal-ui/data?demo=1";</script>` +
       `<div style="position:fixed;bottom:14px;left:50%;transform:translateX(-50%);` +
       `z-index:9999;background:#1E1C18;color:rgba(255,255,255,0.92);font:600 11px/1 ` +
       `'Inter Tight',system-ui,sans-serif;letter-spacing:0.12em;text-transform:uppercase;` +
