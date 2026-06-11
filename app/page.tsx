@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getOptionalUser, getInvestorIdForAuthUser } from "@/lib/auth";
 import { LandingReveal } from "./landing-reveal";
+import { MobileNav } from "./landing-mobile-nav";
 import "./landing.css";
 
 /**
@@ -50,6 +51,14 @@ const LEFT_GLYPHS: Glyph[] = [
 const RIGHT_GLYPHS: Glyph[] = [
   { w: 640, h: 640, left: 180, bottom: -130, z: 2, rot: 14 },
   { w: 220, h: 220, left: 340, bottom: 290, z: 1, rot: -12, float: true },
+];
+
+// Mobile hero composition from "cNEAR Mobile.html": two glyphs tucked behind
+// a centered portal screenshot inside a 250px stage. Only rendered below the
+// mobile breakpoint (the desktop clusters hide there, and vice versa).
+const MOBILE_GLYPHS: Glyph[] = [
+  { w: 240, h: 240, left: -90, bottom: -40, z: 1, rot: -9 },
+  { w: 150, h: 150, left: 290, bottom: -20, z: 1, rot: 12 },
 ];
 
 function GlyphSet({ glyphs }: { glyphs: Glyph[] }) {
@@ -178,6 +187,7 @@ export default async function Home() {
               Investor portal
             </a>
           </div>
+          <MobileNav />
         </nav>
 
         <div className="hero-content">
@@ -191,6 +201,35 @@ export default async function Home() {
             discipline behind NEAR: institutional yield, independent custody,
             and on-chain transparency in one instrument.
           </p>
+
+          {/* Mobile-only hero pieces from "cNEAR Mobile.html": the CTA moves
+              from the nav into the hero, and the glyph clusters + dashboard
+              collapse into one centered touch-reveal stage. All of this is
+              display:none above the mobile breakpoint. */}
+          <div className="m-ctas">
+            <a className="m-cta" href="/portal">
+              <span className="ring">
+                <span className="dot" />
+              </span>
+              Investor portal
+            </a>
+          </div>
+          <div className="m-stage" id="m-stage">
+            <GlyphSet glyphs={MOBILE_GLYPHS} />
+            <div className="overlay" aria-hidden="true">
+              <GlyphSet glyphs={MOBILE_GLYPHS} />
+            </div>
+            <div className="m-dash">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/landing/portal.png"
+                alt="cNEAR investor portal dashboard showing net asset value and NAV growth versus NEAR"
+              />
+            </div>
+          </div>
+          <div className="m-hint" aria-hidden="true">
+            Touch the glass · Scroll to explore
+          </div>
         </div>
 
         <Cluster side="left" glyphs={LEFT_GLYPHS} />
@@ -222,10 +261,21 @@ export default async function Home() {
         <h2 className="sec-h">
           Three yield engines, actively managed in one certificate.
         </h2>
+        {/* The mobile design carries the later copy revision (tokenisation
+            stated up front); the desktop text stays frozen to keep the live
+            1680px rendering byte-identical. */}
         <p className="sec-sub">
-          The portfolio allocates across staking, a multi-leg options program,
-          and structured products, delta-managed to retain upside that
-          single-leg covered calls give away.
+          <span className="m-copy">
+            A tokenised certificate: the strategy is issued on-chain, and the
+            portfolio allocates across staking, a multi-leg options program,
+            and structured products, delta-managed to retain upside that
+            single-leg covered calls give away.
+          </span>
+          <span className="d-copy">
+            The portfolio allocates across staking, a multi-leg options
+            program, and structured products, delta-managed to retain upside
+            that single-leg covered calls give away.
+          </span>
         </p>
         <div className="alloc" id="alloc">
           <AllocSegments />
@@ -249,7 +299,12 @@ export default async function Home() {
           <div className="stat">
             <div className="stat-n">Monthly</div>
             <div className="stat-l">NAV-priced redemptions</div>
-            <div className="stat-d">25% gate per redemption window</div>
+            <div className="stat-d">
+              <span className="m-copy">
+                subscribe and redeem at published NAV
+              </span>
+              <span className="d-copy">25% gate per redemption window</span>
+            </div>
           </div>
         </div>
       </section>

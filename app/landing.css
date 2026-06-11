@@ -276,6 +276,136 @@ body { background: #F2F2F0; }
 @media (max-width: 760px) {
   .landing .stat-row, .landing .tr-grid { grid-template-columns: 1fr; }
   .landing .alloc { flex-direction: column; }
+  /* keep the green reveal copy aligned with the stacked segments */
+  .landing .alloc-overlay { flex-direction: column; }
+}
+
+/* ==========================================================================
+   Mobile (≤640px), recreated from the design handoff "cNEAR Mobile.html"
+   (390px design width). The desktop hero treatment is replaced wholesale:
+   nav collapses to logo + burger, the CTA moves into the hero, and the two
+   glyph clusters + dashboard become one centered touch-reveal stage.
+   Values are taken verbatim from the prototype's .m-* rules.
+   ========================================================================== */
+
+/* Mobile-only elements stay out of the desktop rendering entirely. */
+.landing .m-burger,
+.landing .m-menu,
+.landing .m-ctas,
+.landing .m-stage,
+.landing .m-hint,
+.landing .m-copy { display: none; }
+
+@media (max-width: 640px) {
+  /* ---------- nav: logo + burger ---------- */
+  .landing .nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 18px;
+    background: rgba(242,242,240,0.88);
+  }
+  .landing .logo { font-size: 20px; }
+  .landing .nav-right { display: none; }
+  .landing .m-burger {
+    width: 44px; height: 44px; border: none; background: none; cursor: pointer; padding: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+  }
+  .landing .m-burger span { display: block; width: 20px; height: 2px; background: var(--ink); border-radius: 1px; }
+  /* The prototype's burger has no menu screen; this panel is the minimal
+     functional reading, reusing the desktop nav-link tokens. */
+  .landing .m-menu {
+    display: flex; flex-direction: column; align-items: flex-start;
+    position: fixed; top: 68px; left: 0; right: 0; z-index: 49;
+    background: rgba(242,242,240,0.97);
+    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+    padding: 6px 18px 20px;
+  }
+  .landing .m-menu a:not(.m-cta) {
+    font-weight: 600; font-size: 13px; letter-spacing: 1.5px; color: var(--link);
+    text-decoration: none; padding: 12px 0; min-height: 44px; display: flex; align-items: center;
+  }
+  .landing .m-menu .m-cta { margin-top: 10px; }
+
+  /* ---------- hero ---------- */
+  .landing .hero { min-height: 0; }
+  .landing .hero-halo { display: none; }
+  /* 68px fixed nav + the prototype's 40px hero padding */
+  .landing .hero-content { padding: 108px 24px 0; }
+  .landing .eyebrow { font-size: 13px; margin-bottom: 12px; }
+  .landing h1 { font-size: 38px; line-height: 1.1; letter-spacing: -0.9px; }
+  .landing .sub { font-size: 15.5px; max-width: 320px; margin-top: 14px; line-height: 1.5; }
+
+  .landing .m-ctas { display: flex; justify-content: center; gap: 10px; margin-top: 22px; }
+  .landing .m-cta {
+    display: inline-flex; align-items: center; gap: 8px; min-height: 48px;
+    background: var(--cta-bg); color: var(--cta-fg); border-radius: 9999px;
+    padding: 12px 22px; font-weight: 600; font-size: 14px; text-decoration: none;
+  }
+  .landing .m-cta .ring {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: rgba(255,255,255,0.25);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .landing .m-cta .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+  /* ---------- glyph + portal stage ---------- */
+  .landing .cluster, .landing .dashwrap, .landing .scroll-ind { display: none; }
+  .landing .m-stage { display: block; position: relative; width: 100%; margin-top: 8px; height: 250px; }
+  .landing .m-stage .nglyph-wrap { filter: drop-shadow(0 18px 20px var(--glyph-shadow)); }
+  .landing .m-stage .overlay .nglyph-wrap { filter: drop-shadow(0 0 24px var(--accent-halo)); }
+  .landing .m-dash {
+    position: absolute; left: 50%; bottom: 0; transform: translateX(-50%);
+    width: 330px; z-index: 3;
+  }
+  .landing .m-dash img {
+    width: 100%; display: block; border-radius: 10px 10px 0 0;
+    box-shadow: 0 -6px 40px rgba(0,0,0,0.14), 0 20px 60px rgba(0,0,0,0.10);
+  }
+  .landing .m-dash::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(to top, #F2F2F0 4%, rgba(242,242,240,0.55) 20%, transparent 45%);
+  }
+  .landing .m-hint {
+    display: block; position: relative; z-index: 4; padding: 6px 0 0;
+    font-weight: 500; font-size: 12.5px; color: rgba(0,0,0,0.45); text-align: center;
+  }
+
+  /* ---------- sections ---------- */
+  .landing .section { padding: 56px 24px; }
+  .landing .sec-eyebrow { font-size: 12px; margin-bottom: 12px; }
+  .landing .sec-h { font-size: 26px; line-height: 1.18; letter-spacing: -0.5px; }
+  .landing .sec-sub { font-size: 15px; margin-top: 10px; }
+
+  .landing .alloc { margin-top: 28px; gap: 8px; }
+  .landing .alloc-overlay { gap: 8px; }
+  .landing .alloc-seg { border-radius: 14px; padding: 16px 18px 14px; min-height: 48px; }
+  .landing .alloc-pct { font-size: 28px; }
+  .landing .alloc-name { font-size: 12px; margin-top: 2px; }
+
+  .landing .stat-row { display: flex; flex-direction: column; gap: 22px; margin-top: 34px; }
+  .landing .stat { padding-top: 14px; }
+  .landing .stat-n { font-size: 32px; letter-spacing: -1px; }
+  .landing .stat-l { margin-top: 5px; }
+  .landing .stat-d { font-size: 13.5px; margin-top: 2px; }
+
+  .landing .tr-grid { gap: 8px; margin-top: 28px; }
+  .landing .tr-card { border-radius: 14px; padding: 22px 26px; }
+  .landing .tr-num { font-size: 13px; }
+  .landing .tr-t { font-size: 17px; margin-top: 8px; }
+  .landing .tr-b { font-size: 14px; margin-top: 5px; }
+
+  .landing .contact-mail {
+    margin-top: 22px; min-height: 44px;
+    font-size: 20px; letter-spacing: -0.3px; padding-bottom: 5px;
+  }
+
+  .landing .footer { display: block; padding: 20px 24px 28px; }
+  .landing .footer .mark { font-size: 16px; }
+  .landing .footer .fine { font-size: 12px; margin-top: 8px; line-height: 1.5; }
+
+  /* copy revisions that exist only in the mobile prototype */
+  .landing .m-copy { display: inline; }
+  .landing .d-copy { display: none; }
 }
 
 /* House accessibility rule: stop all decorative motion when the visitor
