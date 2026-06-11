@@ -23,6 +23,13 @@ export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   if (!isPreview()) {
+    // Neon Auth not yet enabled (placeholder keys): calling Stack would
+    // crash; send visitors to the sign-in route, which renders the
+    // "access being enabled" notice instead of mounting Stack.
+    const { authConfigured } = await import("@/lib/auth-ready");
+    if (!authConfigured()) {
+      return NextResponse.redirect(new URL("/handler/sign-in", request.url));
+    }
     const user = await stackServerApp.getUser();
     if (!user) {
       return NextResponse.redirect(new URL("/handler/sign-in", request.url));
