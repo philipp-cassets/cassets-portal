@@ -41,6 +41,8 @@ export async function GET(request: Request) {
     headers: {
       "Content-Type": "text/html; charset=utf-8",
       "Cache-Control": "private, no-store",
+      // Raw-HTML route: no Next metadata applies, so pin noindex here.
+      "X-Robots-Tag": "noindex, nofollow",
     },
   });
 }
