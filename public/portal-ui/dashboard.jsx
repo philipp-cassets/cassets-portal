@@ -220,15 +220,15 @@
       <div className="barcode" ref={wrapRef} onMouseMove={onMove} onMouseLeave={() => setHover(null)} data-screen-label="Barcode chart">
         <svg height={SVG_H} aria-label="Daily NAV per unit history">
           <defs>
-            <linearGradient id="gDefault" x1="0" y1="0" x2="0" y2="1">
+            <linearGradient id="gDefault" x1="0" y1="1" x2="0" y2="0">
               <stop offset="0" stopColor="rgba(60,56,46,0.55)"></stop>
               <stop offset="1" stopColor="rgba(60,56,46,0.22)"></stop>
             </linearGradient>
-            <linearGradient id="gOlive" x1="0" y1="0" x2="0" y2="1">
+            <linearGradient id="gOlive" x1="0" y1="1" x2="0" y2="0">
               <stop offset="0" stopColor="rgba(105,110,75,0.45)"></stop>
               <stop offset="1" stopColor="rgba(105,110,75,0.18)"></stop>
             </linearGradient>
-            <linearGradient id="gLight" x1="0" y1="0" x2="0" y2="1">
+            <linearGradient id="gLight" x1="0" y1="1" x2="0" y2="0">
               <stop offset="0" stopColor="rgba(60,56,46,0.30)"></stop>
               <stop offset="1" stopColor="rgba(60,56,46,0.22)"></stop>
             </linearGradient>
@@ -241,7 +241,7 @@
           {strokes.map((s) => (
             <rect
               key={s.i}
-              x={s.x} y="0" width={STROKE_W} height={s.len}
+              x={s.x} y={BAND_H - s.len} width={STROKE_W} height={s.len}
               className="bc-stroke"
               fill={s.tone === "olive" ? "url(#gOlive)" : s.tone === "light" ? "url(#gLight)" : "url(#gDefault)"}
               style={{ "--d": (0.6 + s.i * 0.0012).toFixed(3) + "s" }}
@@ -252,7 +252,7 @@
           {strokes.map((s) => (
             <rect
               key={"h" + s.i}
-              x={s.x} y="0" width={STROKE_W} height={s.len}
+              x={s.x} y={BAND_H - s.len} width={STROKE_W} height={s.len}
               fill="url(#gInk)"
               style={{
                 opacity: hover && Math.abs(s.i - hover.idx) <= 3 ? 1 : 0,
