@@ -182,7 +182,7 @@
         const range = max - min;
         const pad = range * 0.06 || 0.000001;
         const norm = Math.max(0, Math.min(1, (pt.nav - (min - pad)) / (range + 2 * pad)));
-        const len = (0.98 - 0.62 * norm) * BAND_H;
+        const len = (0.94 - 0.76 * norm) * BAND_H;
         return { x, len, tone: TONES[m % 3], pt, i };
       });
     }, [n, width, pitch, denom]);
@@ -222,15 +222,15 @@
           <defs>
             <linearGradient id="gDefault" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0" stopColor="rgba(60,56,46,0.55)"></stop>
-              <stop offset="1" stopColor="rgba(60,56,46,0)"></stop>
+              <stop offset="1" stopColor="rgba(60,56,46,0.22)"></stop>
             </linearGradient>
             <linearGradient id="gOlive" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0" stopColor="rgba(105,110,75,0.45)"></stop>
-              <stop offset="1" stopColor="rgba(105,110,75,0)"></stop>
+              <stop offset="1" stopColor="rgba(105,110,75,0.18)"></stop>
             </linearGradient>
             <linearGradient id="gLight" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0" stopColor="rgba(60,56,46,0.30)"></stop>
-              <stop offset="1" stopColor="rgba(60,56,46,0)"></stop>
+              <stop offset="1" stopColor="rgba(60,56,46,0.22)"></stop>
             </linearGradient>
             <linearGradient id="gInk" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0" stopColor="rgba(5,5,12,0.95)"></stop>
