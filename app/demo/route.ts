@@ -22,7 +22,7 @@ export async function GET(request: Request) {
     throw new Error("demo injection anchor <body> not found in portal index.html");
   }
   const embedStyle = embed
-    ? `<style>body{zoom:0.40;overflow-x:hidden;scrollbar-width:none}` +
+    ? `<style>body{overflow-x:hidden;scrollbar-width:none}` +
       `body::-webkit-scrollbar{display:none}` +
       `*{animation-duration:0.01s!important;animation-delay:0s!important}</style>`
     : "";

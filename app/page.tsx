@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getOptionalUser, getInvestorIdForAuthUser } from "@/lib/auth";
 import { LandingReveal } from "./landing-reveal";
 import { MobileNav } from "./landing-mobile-nav";
+import { DashEmbed } from "./dash-embed";
 import "./landing.css";
 
 /**
@@ -239,11 +240,7 @@ export default async function Home() {
             {/* Live demonstration portal (fixture data) instead of a static
                 mock: the toggle, charts and screens actually work, and the
                 hero stays in sync with every portal improvement. */}
-            <iframe
-              src="/demo?embed=1"
-              title="cNEAR investor portal demonstration (fictitious data)"
-              loading="lazy"
-            />
+            <DashEmbed />
           </div>
         </div>
 
