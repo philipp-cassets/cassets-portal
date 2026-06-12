@@ -156,6 +156,7 @@ body { background: #F2F2F0; }
 }
 .landing .overlay {
   position: absolute; inset: 0; pointer-events: none; z-index: 10;
+  opacity: 0; /* JS raises it only while the reveal has real radius (Safari) */
   -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
   -webkit-mask-image: radial-gradient(circle 0px at 50% 50%, black 0%, black 40%, transparent 100%);
   mask-image: radial-gradient(circle 0px at 50% 50%, black 0%, black 40%, transparent 100%);

@@ -45,16 +45,25 @@ function createSpring(wrap: HTMLElement, overlay: HTMLElement): Spring {
       radius = 0;
       velocity = 0;
     }
-    const mask =
-      "radial-gradient(circle " +
-      radius.toFixed(1) +
-      "px at " +
-      x +
-      "px " +
-      y +
-      "px, black 0%, black 40%, transparent 100%)";
-    overlay.style.webkitMaskImage = mask;
-    overlay.style.maskImage = mask;
+    // Safari: never paint the overlay with a degenerate (near-zero) radial
+    // mask - WebKit's handling of zero-size gradients diverges from Chrome
+    // and can flash the layer (incl. its drop-shadow) as a bare rectangle.
+    // Below threshold the overlay is fully invisible instead.
+    if (radius < 0.75) {
+      overlay.style.opacity = "0";
+    } else {
+      overlay.style.opacity = "1";
+      const mask =
+        "radial-gradient(circle " +
+        radius.toFixed(1) +
+        "px at " +
+        x +
+        "px " +
+        y +
+        "px, black 0%, black 40%, transparent 100%)";
+      overlay.style.webkitMaskImage = mask;
+      overlay.style.maskImage = mask;
+    }
     if (Math.abs(target - radius) > 0.1 || Math.abs(velocity) > 0.1) {
       raf = requestAnimationFrame(tick);
     } else {
