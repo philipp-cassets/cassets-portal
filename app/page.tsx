@@ -278,7 +278,7 @@ export default async function Home() {
             <div className="stat-n">~12.6%</div>
             <div className="stat-l">Net to certificate holder</div>
             <div className="stat-d">
-              above holding NEAR, after 2%/20% fees with a 5% hurdle
+              above holding NEAR
             </div>
           </div>
           <div className="stat">
