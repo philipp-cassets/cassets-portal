@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { requireDataroomViewer } from "@/lib/dataroom";
+import { FeedbackPanel } from "@/components/FeedbackPanel";
 import "./howitworks.css";
 
 /**
@@ -74,7 +76,8 @@ const SAFES = [
   },
 ];
 
-export default function HowItWorks() {
+export default async function HowItWorks() {
+  const viewer = await requireDataroomViewer("how-it-works");
   return (
     <div className="hiw">
       <div className="halo" />
@@ -231,6 +234,9 @@ export default function HowItWorks() {
           </div>
         </footer>
       </div>
+      {viewer && (
+        <FeedbackPanel doc="how-it-works" viewerEmail={viewer.email} />
+      )}
     </div>
   );
 }

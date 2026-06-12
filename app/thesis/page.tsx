@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { requireDataroomViewer } from "@/lib/dataroom";
+import { FeedbackPanel } from "@/components/FeedbackPanel";
 import {
   ConfTvlChart,
   IntentsVolChart,
@@ -79,7 +81,8 @@ const PILLARS = [
   },
 ];
 
-export default function Thesis() {
+export default async function Thesis() {
+  const viewer = await requireDataroomViewer("thesis");
   return (
     <div className="thesis">
       <nav className="nav">
@@ -1443,6 +1446,7 @@ export default function Thesis() {
           </div>
         </div>
       </footer>
+      {viewer && <FeedbackPanel doc="thesis" viewerEmail={viewer.email} />}
     </div>
   );
 }

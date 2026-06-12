@@ -1,0 +1,98 @@
+/*
+ * Dataroom surfaces (sign-in, document index, admin) in the Glass Light
+ * design language used by the three documents. Loaded only on /dataroom
+ * routes.
+ */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; }
+body { background: #F2F2F0; }
+
+.droom {
+  font-family: var(--font-inter-tight), sans-serif;
+  background: #F2F2F0;
+  color: #05050C;
+  min-height: 100vh;
+  --ink: #05050C;
+  --dim: rgba(0,0,0,0.20);
+  --body: rgba(0,0,0,0.55);
+  --mut: rgba(0,0,0,0.40);
+  --accent: #00C887;
+  --accent-deep: #00744F;
+  --rule: rgba(0,0,0,0.08);
+  --card-bg: rgba(255,255,255,0.75);
+  --card-bd: rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: clamp(40px, 10vh, 120px) 20px 56px;
+  position: relative;
+}
+.droom .halo { position: fixed; inset: 0; pointer-events: none; background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(220,220,215,0.6) 0%, transparent 70%); }
+
+.droom .card {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-bd);
+  border-radius: 18px;
+  padding: 36px 36px 32px;
+}
+.droom .card.wide { max-width: 920px; }
+
+.droom .logo { font-size: 24px; letter-spacing: -0.4px; color: var(--ink); margin-bottom: 22px; }
+.droom .logo .c { font-weight: 300; }
+.droom .logo .rest { font-weight: 800; }
+
+.droom .eyebrow { font-weight: 600; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent-deep); margin-bottom: 10px; }
+.droom h1 { font-weight: 500; letter-spacing: -0.02em; font-size: 26px; line-height: 1.15; }
+.droom .sub { font-weight: 500; font-size: 14px; color: var(--body); line-height: 1.65; margin-top: 10px; text-wrap: pretty; }
+
+.droom form { margin-top: 22px; display: flex; flex-direction: column; gap: 10px; }
+.droom input[type="email"] {
+  font-family: inherit; font-weight: 500; font-size: 15px;
+  padding: 13px 16px; border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.14); background: #FFFFFF; color: var(--ink);
+  outline: none; transition: border-color 150ms ease;
+}
+.droom input[type="email"]:focus { border-color: var(--accent-deep); }
+.droom button {
+  font-family: inherit; font-weight: 600; font-size: 14px;
+  padding: 13px 18px; border-radius: 9999px; border: none; cursor: pointer;
+  background: var(--ink); color: #FFFFFF; transition: opacity 150ms ease;
+}
+.droom button:hover { opacity: 0.85; }
+.droom button:disabled { opacity: 0.5; cursor: default; }
+.droom .err { font-weight: 500; font-size: 13px; color: #B0492F; margin-top: 8px; }
+.droom .sent {
+  margin-top: 22px; padding: 18px 20px; border-radius: 12px;
+  background: rgba(0,200,135,0.08); border: 1px solid rgba(0,200,135,0.20);
+  font-weight: 500; font-size: 14px; color: var(--ink); line-height: 1.6;
+}
+
+.droom .fine { font-weight: 500; font-size: 11.5px; color: rgba(0,0,0,0.30); line-height: 1.6; margin-top: 20px; max-width: 440px; text-align: center; }
+
+/* document index */
+.droom .docs { margin-top: 24px; display: flex; flex-direction: column; gap: 4px; }
+.droom .doc-link {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 14px;
+  padding: 16px 20px; border-radius: 12px; text-decoration: none;
+  background: #FFFFFF; border: 1px solid var(--card-bd);
+  transition: border-color 150ms ease;
+}
+.droom .doc-link:hover { border-color: rgba(0,168,117,0.45); }
+.droom .doc-t { font-weight: 600; font-size: 15px; color: var(--ink); }
+.droom .doc-a { font-weight: 600; font-size: 12px; color: var(--accent-deep); white-space: nowrap; }
+.droom .meta { margin-top: 22px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-weight: 500; font-size: 12.5px; color: var(--mut); }
+.droom .meta a { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+
+/* admin table */
+.droom .acount { font-weight: 500; font-size: 13.5px; color: var(--mut); margin-top: 8px; }
+.droom table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 22px; }
+.droom thead th { font-weight: 600; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--mut); padding: 10px 12px; text-align: left; border-bottom: 1px solid rgba(0,0,0,0.14); }
+.droom tbody td { font-weight: 500; padding: 12px; border-bottom: 1px solid var(--rule); color: var(--body); vertical-align: top; }
+.droom tbody td.who { color: var(--ink); font-weight: 600; white-space: nowrap; }
+.droom tbody td.when { white-space: nowrap; color: var(--mut); }
+.droom tbody td.doccol { white-space: nowrap; color: var(--accent-deep); font-weight: 600; }
+.droom tbody td.body-col { max-width: 480px; line-height: 1.55; }

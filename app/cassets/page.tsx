@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { requireDataroomViewer } from "@/lib/dataroom";
+import { FeedbackPanel } from "@/components/FeedbackPanel";
 import "./onepager.css";
 
 /**
@@ -219,7 +221,8 @@ function SCurveChart() {
   );
 }
 
-export default function CAssetsOnePager() {
+export default async function CAssetsOnePager() {
+  const viewer = await requireDataroomViewer("cassets");
   return (
     <div className="onepager">
       <div className="halo" />
@@ -379,6 +382,9 @@ export default function CAssetsOnePager() {
           </div>
         </footer>
       </div>
+      {viewer && (
+        <FeedbackPanel doc="cassets" viewerEmail={viewer.email} />
+      )}
     </div>
   );
 }
