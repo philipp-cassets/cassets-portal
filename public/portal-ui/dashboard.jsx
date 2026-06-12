@@ -262,9 +262,14 @@
             ></rect>
           ))}
 
-          {/* month dividers: band height + 90px */}
+          {/* month dividers: with bottom-anchored bars a full-height ink rule
+              reads as a stray bar, so the divider lives BELOW the baseline
+              only (tick into the label zone) plus a whisper hairline in-band. */}
           {months.slice(1).map((m) => (
-            <line key={m.key} x1={m.start * pitch} y1="0" x2={m.start * pitch} y2={SVG_H} stroke="#05050C" strokeWidth="1"></line>
+            <g key={m.key}>
+              <line x1={m.start * pitch} y1="0" x2={m.start * pitch} y2={BAND_H} stroke="rgba(0,0,0,0.07)" strokeWidth="1"></line>
+              <line x1={m.start * pitch} y1={BAND_H} x2={m.start * pitch} y2={SVG_H} stroke="#05050C" strokeWidth="1"></line>
+            </g>
           ))}
         </svg>
 

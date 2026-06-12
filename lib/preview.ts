@@ -36,13 +36,13 @@ export const previewSession = {
   investorId: PREVIEW_INVESTOR_ID,
 };
 
-function navSeries(start: number, drift: number, days: number): NavRow[] {
+function navSeries(start: number, drift: number, days: number, phase = 1.7, amp = 0.004): NavRow[] {
   const rows: NavRow[] = [];
   let nav = start;
   for (let i = days; i >= 0; i--) {
     const d = new Date(Date.UTC(2026, 5, 10) - i * 86400000);
     // deterministic wobble, no Math.random - preview must be stable
-    nav = nav * (1 + drift + 0.004 * Math.sin(i * 1.7));
+    nav = nav * (1 + drift + amp * Math.sin(i * phase));
     rows.push({
       cell: "CNEAR",
       share_class: "N",
@@ -94,7 +94,9 @@ const PREVIEW_NOTIFICATIONS: Omit<NotificationRow, "read">[] = [
 const previewReadIds = new Set<string>(["1"]);
 
 const navN = navSeries(1.0, 0.0011, 60);
-const navU = navSeries(1.0, 0.0008, 60).map((r) => ({ ...r, share_class: "U" }));
+// Distinct shape from Class N so the denomination toggle visibly switches
+// series in the demo (real histories differ naturally).
+const navU = navSeries(1.0, 0.0008, 60, 0.9, 0.0022).map((r) => ({ ...r, share_class: "U" }));
 
 const lastNavN = navN[navN.length - 1].nav_per_unit;
 const lastNavU = navU[navU.length - 1].nav_per_unit;

@@ -165,7 +165,18 @@ body { background: #F2F2F0; }
   position: absolute; bottom: 0; left: 0; right: 0; z-index: 3;
   display: flex; justify-content: center; pointer-events: none;
 }
-.landing .dash { width: clamp(420px, min(62vw, calc((100vh - 520px) * 1.63)), 760px); animation: dashIn 1.0s cubic-bezier(0.22, 1, 0.36, 1) 0.6s both; }
+.landing .dash {
+  width: clamp(420px, min(62vw, calc((100vh - 520px) * 1.63)), 760px);
+  aspect-ratio: 1.63;
+  pointer-events: auto; /* the embedded demo is interactive */
+  animation: dashIn 1.0s cubic-bezier(0.22, 1, 0.36, 1) 0.6s both;
+}
+.landing .dash iframe {
+  width: 100%; height: 100%; display: block; border: 0;
+  background: #F2F2F0;
+  border-radius: 12px 12px 0 0;
+  box-shadow: 0 -8px 80px rgba(0,0,0,0.12), 0 40px 120px rgba(0,0,0,0.10);
+}
 .landing .dash img {
   width: 100%; height: auto; display: block; object-fit: contain;
   border-radius: 12px 12px 0 0;
@@ -178,8 +189,8 @@ body { background: #F2F2F0; }
 
 /* ---------- bottom blend + scroll indicator ---------- */
 .landing .dash::after {
-  content: ""; position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(to top, #F2F2F0 4%, rgba(242,242,240,0.55) 22%, transparent 48%);
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 48%; pointer-events: none;
+  background: linear-gradient(to top, #F2F2F0 8%, rgba(242,242,240,0.55) 46%, transparent 100%);
 }
 .landing .dash { position: relative; }
 .landing .scroll-ind {

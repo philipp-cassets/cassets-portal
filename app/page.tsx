@@ -236,10 +236,13 @@ export default async function Home() {
 
         <div className="dashwrap">
           <div className="dash">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/landing/portal.png"
-              alt="cNEAR investor portal dashboard showing net asset value and NAV growth versus NEAR"
+            {/* Live demonstration portal (fixture data) instead of a static
+                mock: the toggle, charts and screens actually work, and the
+                hero stays in sync with every portal improvement. */}
+            <iframe
+              src="/demo?embed=1"
+              title="cNEAR investor portal demonstration (fictitious data)"
+              loading="lazy"
             />
           </div>
         </div>
