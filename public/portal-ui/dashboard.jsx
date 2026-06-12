@@ -175,8 +175,14 @@
       return series.map((pt, i) => {
         while (m < months.length - 1 && i >= months[m + 1].start) m++;
         const x = i * pitch;
-        const norm = Math.max(0, Math.min(1, (pt.nav - min) / (max - min)));
-        const len = (0.55 + 0.45 * norm) * BAND_H;
+        // Proportion tuning (user request): let the REAL series range drive
+        // most of the visual variation, padded 6% so extremes are not pinned,
+        // and INVERTED so a higher NAV hangs a SHORTER stroke - the fringe's
+        // bottom edge then traces the NAV curve upward as price rises.
+        const range = max - min;
+        const pad = range * 0.06 || 0.000001;
+        const norm = Math.max(0, Math.min(1, (pt.nav - (min - pad)) / (range + 2 * pad)));
+        const len = (0.98 - 0.62 * norm) * BAND_H;
         return { x, len, tone: TONES[m % 3], pt, i };
       });
     }, [n, width, pitch, denom]);
