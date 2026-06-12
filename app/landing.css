@@ -142,8 +142,17 @@ body { background: #F2F2F0; }
   background:
     linear-gradient(115deg, transparent 30%, var(--slab-streak) 40%, transparent 52%),
     linear-gradient(165deg, var(--glyph-a), var(--glyph-b));
-  -webkit-mask: url("/landing/near-logo-mask.png") center / contain no-repeat;
-  mask: url("/landing/near-logo-mask.png") center / contain no-repeat;
+  /* Longhands, not the shorthand: Safari fails to parse the
+     `position / size` slash form of -webkit-mask and silently drops the
+     mask, rendering the glass slab as a bare rectangle. */
+  -webkit-mask-image: url("/landing/near-logo-mask.png");
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-image: url("/landing/near-logo-mask.png");
+  mask-position: center;
+  mask-size: contain;
+  mask-repeat: no-repeat;
 }
 .landing .overlay {
   position: absolute; inset: 0; pointer-events: none; z-index: 10;
