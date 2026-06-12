@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@stackframe/stack": "^2.8.108",
+    "chart.js": "^4.5.1",
     "next": "^15.5.19",
     "pg": "^8.16.0",
     "react": "^19.1.0",
