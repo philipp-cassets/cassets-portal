@@ -446,3 +446,82 @@ body { background: #F2F2F0; }
     animation: none !important;
   }
 }
+
+/* ---------- "How to get cNEAR" (replaces the hero portal embed) ---------- */
+.landing .getcard {
+  width: clamp(420px, 56vw, 720px);
+  pointer-events: auto;
+  background: rgba(255,255,255,0.82);
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  border: 1px solid rgba(0,0,0,0.07);
+  border-radius: 18px 18px 0 0;
+  padding: 26px 28px 22px;
+  box-shadow: 0 -8px 80px rgba(0,0,0,0.10), 0 40px 120px rgba(0,0,0,0.08);
+  animation: dashIn 1.0s cubic-bezier(0.22, 1, 0.36, 1) 0.6s both;
+}
+.landing .get-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.landing .get-eyebrow { font-weight: 600; font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ink); }
+.landing .get-sub { font-weight: 500; font-size: 13px; color: rgba(0,0,0,0.45); }
+.landing .get-row {
+  display: grid; grid-template-columns: 44px 1fr auto; align-items: center; gap: 16px;
+  padding: 16px 4px; border-top: 1px solid rgba(0,0,0,0.08);
+  color: var(--ink); text-decoration: none;
+  transition: background 180ms ease;
+}
+.landing .get-row:hover { background: rgba(0,200,135,0.06); }
+.landing .get-logo {
+  width: 44px; height: 44px; border-radius: 12px; object-fit: cover;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.08);
+}
+.landing .get-txt { display: flex; flex-direction: column; gap: 3px; }
+.landing .get-t { font-weight: 600; font-size: 18px; letter-spacing: -0.3px; }
+.landing .get-b { font-weight: 500; font-size: 14px; line-height: 1.45; color: rgba(0,0,0,0.50); text-wrap: pretty; }
+.landing .get-go {
+  font-weight: 600; font-size: 13.5px; white-space: nowrap;
+  padding: 9px 14px; border-radius: 999px;
+  border: 1px solid var(--accent-border); color: var(--ink);
+}
+.landing .get-row:hover .get-go { background: var(--accent); border-color: var(--accent); color: #fff; }
+.landing .get-demo {
+  display: block; margin-top: 6px; padding-top: 14px; border-top: 1px solid rgba(0,0,0,0.08);
+  font-weight: 500; font-size: 13px; color: rgba(0,0,0,0.45); text-decoration: none; text-align: center;
+}
+.landing .get-demo:hover { color: var(--ink); }
+
+.landing .get-list { margin-top: 40px; display: flex; flex-direction: column; max-width: 860px; }
+.landing .get-list .get-row { padding: 22px 8px; }
+.landing .get-list .get-row:last-child { border-bottom: 1px solid rgba(0,0,0,0.08); }
+
+@media (max-width: 760px) {
+  .landing .get-row { grid-template-columns: 44px 1fr; }
+  .landing .get-go { grid-column: 2; justify-self: start; }
+}
+.landing .m-cta-ghost { background: transparent; color: var(--ink); border: 1px solid rgba(0,0,0,0.25); }
+
+/* Routes live in the hero card on desktop; mobile has no card, so it gets its own section. */
+.landing .get-mobile { display: none; }
+@media (max-width: 640px) { .landing .get-mobile { display: block; } }
+.landing .scroll-ind { display: none; }
+
+/* nav logo: NEAR glyph beside the wordmark */
+.landing .logo { display: inline-flex; align-items: center; gap: 0; }
+.landing .logo-mark {
+  width: 26px; height: 26px; margin-right: 9px; background: var(--ink);
+  -webkit-mask-image: url("/landing/near-logo-mask.png"); mask-image: url("/landing/near-logo-mask.png");
+  -webkit-mask-position: center; mask-position: center;
+  -webkit-mask-size: contain; mask-size: contain;
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+}
+
+/* partners */
+.landing .partner-row {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 44px;
+}
+.landing .partner {
+  height: 112px; display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.75); border: 1px solid rgba(0,0,0,0.06); border-radius: 14px;
+  padding: 24px 32px;
+}
+.landing .partner img { max-width: 100%; max-height: 44px; width: auto; filter: brightness(0) opacity(0.62); }
+.landing .partner-name { font-weight: 700; font-size: 22px; letter-spacing: -0.4px; color: rgba(0,0,0,0.58); }
+@media (max-width: 760px) { .landing .partner-row { grid-template-columns: repeat(2, 1fr); } .landing .partner { height: 92px; } }

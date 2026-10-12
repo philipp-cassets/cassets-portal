@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import { getOptionalUser, getInvestorIdForAuthUser } from "@/lib/auth";
 import { LandingReveal } from "./landing-reveal";
 import { MobileNav } from "./landing-mobile-nav";
-import { DashEmbed } from "./dash-embed";
 import "./landing.css";
 
 /**
@@ -17,20 +16,19 @@ import "./landing.css";
  *   signed in, pending   -> /pending (PendingActivation inside the shell)
  */
 const DESCRIPTION =
-  "cNEAR is an actively managed certificate that puts institutional discipline behind NEAR: institutional yield, independent custody, and on-chain transparency in one instrument.";
+  "NEAR is the money of the AI economy, and cNEAR is built to compound it. Your NEAR is put to work through staking, options and structured products, under independent custody, with the value published on-chain every month.";
 
 export const metadata: Metadata = {
-  title: "cNEAR, NEAR, Professionally Managed",
+  title: "cNEAR, Compound Your NEAR",
   description: DESCRIPTION,
   // The landing is the one indexable surface; everything else inherits the
   // global noindex from the root layout.
   robots: { index: true, follow: true },
   openGraph: {
-    title: "cNEAR, NEAR, Professionally Managed",
+    title: "cNEAR, Compound Your NEAR",
     description: DESCRIPTION,
     type: "website",
     siteName: "cNEAR",
-    images: ["/landing/portal.png"],
   },
 };
 
@@ -112,7 +110,7 @@ function Cluster({
 const ALLOC_SEGMENTS = [
   { pct: "20%", name: "Staking", flex: 20, dark: false },
   { pct: "60%", name: "Options", flex: 60, dark: true },
-  { pct: "20%", name: "Structured", flex: 20, dark: false },
+  { pct: "20%", name: "Structured products", flex: 20, dark: false },
 ];
 
 function AllocSegments() {
@@ -131,6 +129,78 @@ function AllocSegments() {
     </>
   );
 }
+
+const GET_ROUTES = [
+  {
+    logo: "/landing/logo-near.png",
+    brand: "near.com",
+    title: "Get it on near.com",
+    body: "Buy cNEAR from your NEAR account in a few taps. No paperwork on your side.",
+    cta: "Open near.com",
+    href: "https://near.com",
+  },
+  {
+    logo: "/landing/logo-rhea.png",
+    brand: "Rhea",
+    title: "Trade on Rhea DEX",
+    body: "Swap into cNEAR on-chain whenever you like, straight from your wallet.",
+    cta: "Open Rhea",
+    href: "https://app.rhea.finance",
+  },
+  {
+    logo: "/landing/logo-cassets.png",
+    brand: "cAssets",
+    title: "Subscribe directly",
+    body: "Subscribe at published NAV through the issuer. Best for larger tickets.",
+    cta: "Request subscription",
+    href: "mailto:investors@cassets.xyz?subject=cNEAR%20direct%20subscription",
+  },
+];
+
+function GetRoutes() {
+  return (
+    <>
+      {GET_ROUTES.map((r) => (
+        <a
+          key={r.brand}
+          className="get-row"
+          href={r.href}
+          {...(r.href.startsWith("http")
+            ? { target: "_blank", rel: "noopener noreferrer" }
+            : {})}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="get-logo" src={r.logo} alt={r.brand} />
+          <span className="get-txt">
+            <span className="get-t">{r.title}</span>
+            <span className="get-b">{r.body}</span>
+          </span>
+          <span className="get-go">{r.cta} <span aria-hidden="true">→</span></span>
+        </a>
+      ))}
+    </>
+  );
+}
+
+// Logos are dropped in as /landing/partners/<file>; a partner without a file
+// renders as a typeset name until its artwork is added.
+const PARTNERS: Array<{ name: string; logo?: string }> = [
+  { name: "Sygnum" },
+  { name: "Keyrock" },
+  { name: "STS Digital" },
+  { name: "DV Trading", logo: "/landing/partners/dv-trading.svg" },
+  { name: "Cumberland", logo: "/landing/partners/cumberland.svg" },
+  { name: "B2C2", logo: "/landing/partners/b2c2.svg" },
+];
+
+const FAQ = [
+  ["Who issues cNEAR?", "cNEAR is issued by Assetize PCC in Jersey. It is an actively managed certificate, not a collective investment fund."],
+  ["Where is my NEAR held?", "With an independent custodian, segregated from the manager."],
+  ["How do I know what it is worth?", "NAV is published on-chain every month, and certificate holders also receive risk reports and trading records."],
+  ["Can I get out?", "Yes. Redemptions are monthly and priced at the published NAV."],
+  ["Who keeps the manager honest?", "An independent oversight committee can hire and fire the manager and holds a veto on material strategy changes."],
+  ["Which route should I pick?", "Most people start on near.com. Use Rhea if you prefer to swap on-chain from your own wallet. Subscribe directly for larger tickets."],
+];
 
 export default async function Home() {
   let state: "anon" | "pending" | "active" = "anon";
@@ -153,14 +223,16 @@ export default async function Home() {
 
         <nav className="nav" aria-label="Main">
           <a className="logo" href="#overview">
+            <span className="logo-mark" aria-hidden="true" />
             <span className="c">c</span>
             <span className="near">NEAR</span>
           </a>
           <div className="nav-links">
             <a href="#overview">OVERVIEW</a>
-            <a href="#strategy">STRATEGY</a>
-            <a href="#transparency">TRANSPARENCY</a>
-            <a href="#contact">CONTACT</a>
+            <a href="#story">THE IDEA</a>
+            <a href="#strategy">HOW IT WORKS</a>
+            <a href="#transparency">SAFEGUARDS</a>
+            <a href="#faq">FAQ</a>
           </div>
           <div className="nav-right">
             <div className="lang">
@@ -178,29 +250,27 @@ export default async function Home() {
               </svg>
               <span>English</span>
             </div>
-            {/* Wired to the real auth flow: /portal redirects anonymous
-                visitors to the Stack sign-in and lands investors in the
-                portal, exactly the pre-landing behaviour. */}
-            <a className="cta" href="/portal">
+            <a className="cta" href="#overview">
               <span className="ring">
                 <span className="dot" />
               </span>
-              Investor portal
+              Get cNEAR
             </a>
           </div>
           <MobileNav />
         </nav>
 
         <div className="hero-content">
-          <p className="eyebrow">NEAR, Professionally Managed</p>
+          <p className="eyebrow">cNEAR, Compound Your NEAR</p>
           <h1>
-            <span className="line1">A New Standard</span>
-            <span className="line2">in NEAR Asset Management</span>
+            <span className="line1">Hold the money of AI.</span>
+            <span className="line2">Let it compound.</span>
           </h1>
           <p className="sub">
-            cNEAR is an actively managed certificate that puts institutional
-            discipline behind NEAR: institutional yield, independent custody,
-            and on-chain transparency in one instrument.
+            NEAR is the money of the AI economy. cNEAR compounds it: your NEAR
+            is put to work through staking, options and structured products,
+            so the amount you own keeps growing. Professionally managed,
+            independently held, published on-chain.
           </p>
 
           {/* Mobile-only hero pieces from "cNEAR Mobile.html": the CTA moves
@@ -208,11 +278,11 @@ export default async function Home() {
               collapse into one centered touch-reveal stage. All of this is
               display:none above the mobile breakpoint. */}
           <div className="m-ctas">
-            <a className="m-cta" href="/portal">
+            <a className="m-cta" href="#get">
               <span className="ring">
                 <span className="dot" />
               </span>
-              Investor portal
+              Get cNEAR
             </a>
           </div>
           <div className="m-stage" id="m-stage">
@@ -220,27 +290,21 @@ export default async function Home() {
             <div className="overlay" aria-hidden="true">
               <GlyphSet glyphs={MOBILE_GLYPHS} />
             </div>
-            <div className="m-dash">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/landing/portal.png"
-                alt="cNEAR investor portal dashboard showing net asset value and NAV growth versus NEAR"
-              />
-            </div>
           </div>
           <div className="m-hint" aria-hidden="true">
-            Touch the glass · Scroll to explore
+            Touch the glass · Scroll for the full story
           </div>
         </div>
 
         <Cluster side="left" glyphs={LEFT_GLYPHS} />
 
         <div className="dashwrap">
-          <div className="dash">
-            {/* Live demonstration portal (fixture data) instead of a static
-                mock: the toggle, charts and screens actually work, and the
-                hero stays in sync with every portal improvement. */}
-            <DashEmbed />
+          <div className="getcard" id="get-hero">
+            <div className="get-head">
+              <span className="get-eyebrow">How to get cNEAR</span>
+              <span className="get-sub">Three ways in</span>
+            </div>
+            <GetRoutes />
           </div>
         </div>
 
@@ -256,16 +320,74 @@ export default async function Home() {
         </div>
       </section>
 
+      <section className="section get-mobile" id="get">
+        <div className="sec-eyebrow">Get cNEAR</div>
+        <h2 className="sec-h">Three ways in. Pick the one that fits.</h2>
+        <div className="get-list">
+          <GetRoutes />
+        </div>
+      </section>
+
+      <section className="section" id="story">
+        <div className="sec-eyebrow">The idea</div>
+        <h2 className="sec-h">
+          Holding NEAR is a bet on AI money. cNEAR is built to compound it.
+        </h2>
+        <p className="sec-sub">
+          NEAR is the money of the AI economy: the asset agents and AI
+          applications settle in. Holding it in a wallet gives you the same
+          number of tokens next year as today. cNEAR is designed to change
+          that: you stay fully invested in AI money while a professional
+          manager works the position to earn more NEAR, and that compounds.
+        </p>
+        <div className="tr-grid story-grid">
+          <div className="tr-card">
+            <div className="tr-num">01</div>
+            <h3 className="tr-t">You bring NEAR</h3>
+            <p className="tr-b">
+              Subscribe or buy cNEAR. Your exposure stays in NEAR, so you keep
+              the upside of the asset you already believe in.
+            </p>
+          </div>
+          <div className="tr-card">
+            <div className="tr-num">02</div>
+            <h3 className="tr-t">cNEAR puts it to work</h3>
+            <p className="tr-b">
+              The portfolio is spread across staking, a multi-leg options
+              program and structured products, all in NEAR, all actively
+              managed.
+            </p>
+          </div>
+          <div className="tr-card">
+            <div className="tr-num">03</div>
+            <h3 className="tr-t">The yield stays in the certificate</h3>
+            <p className="tr-b">
+              Income earned is added to the portfolio, so each cNEAR is backed
+              by more NEAR over time. That is how your NEAR compounds.
+            </p>
+          </div>
+          <div className="tr-card">
+            <div className="tr-num">04</div>
+            <h3 className="tr-t">You can see it and exit it</h3>
+            <p className="tr-b">
+              NAV is published on-chain every month, and you can redeem
+              monthly at that published NAV.
+            </p>
+          </div>
+        </div>
+      </section>
+
       <section className="section" id="strategy">
         <div className="sec-eyebrow">Strategy</div>
         <h2 className="sec-h">
-          Three yield engines, actively managed in one certificate.
+          Three ways your NEAR earns, managed as one portfolio.
         </h2>
         <p className="sec-sub">
-          A tokenised certificate: the strategy is issued on-chain, and the
-          portfolio allocates across staking, a multi-leg options program,
-          and structured products, delta-managed to retain upside that
-          single-leg covered calls give away.
+          Staking earns steady network rewards. The options program earns
+          premium by selling upside in a disciplined, delta-managed way, so
+          more of the upside is kept than with single-leg covered calls.
+          Structured products add defined-outcome return on top. Together
+          they aim to out-earn simply holding NEAR.
         </p>
         <div className="alloc" id="alloc">
           <AllocSegments />
@@ -278,7 +400,7 @@ export default async function Home() {
             <div className="stat-n">~12.6%</div>
             <div className="stat-l">Net to certificate holder</div>
             <div className="stat-d">
-              above holding NEAR
+              target, versus holding NEAR alone
             </div>
           </div>
           <div className="stat">
@@ -291,9 +413,9 @@ export default async function Home() {
 
       <section className="section" id="transparency">
         <div className="sec-eyebrow">Transparency</div>
-        <h2 className="sec-h">Nothing to take on faith.</h2>
+        <h2 className="sec-h">Your NEAR stays safe and visible.</h2>
         <p className="sec-sub">
-          Every safeguard is structural: written into the issuing documents and
+          Compounding your NEAR only matters if it is protected. Every safeguard is structural: written into the issuing documents and
           visible on-chain, not promised in a pitch.
         </p>
         <div className="tr-grid">
@@ -318,7 +440,7 @@ export default async function Home() {
             <h3 className="tr-t">Full information rights</h3>
             <p className="tr-b">
               Certificate holders receive monthly NAV, risk reports, and
-              trading records, with proof of reserves in the investor portal.
+              trading records, with proof of reserves.
             </p>
           </div>
           <div className="tr-card">
@@ -333,9 +455,43 @@ export default async function Home() {
         </div>
       </section>
 
+      <section className="section" id="partners">
+        <div className="sec-eyebrow">Partners</div>
+        <h2 className="sec-h">Trusted institutional partners.</h2>
+        <p className="sec-sub">
+          cNEAR works with established custody, market-making and trading
+          institutions.
+        </p>
+        <div className="partner-row">
+          {PARTNERS.map((p) => (
+            <div className="partner" key={p.name}>
+              {p.logo ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={p.logo} alt={p.name} />
+              ) : (
+                <span className="partner-name">{p.name}</span>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="section" id="faq">
+        <div className="sec-eyebrow">Good to know</div>
+        <h2 className="sec-h">The questions people ask first.</h2>
+        <div className="tr-grid">
+          {FAQ.map(([q, a]) => (
+            <div className="tr-card" key={q}>
+              <h3 className="tr-t">{q}</h3>
+              <p className="tr-b">{a}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <section className="section contact" id="contact">
         <div className="sec-eyebrow">Contact</div>
-        <h2 className="sec-h">Speak with the team.</h2>
+        <h2 className="sec-h">Questions? Speak with the team.</h2>
         <a className="contact-mail" href="mailto:investors@cassets.xyz">
           investors@cassets.xyz
         </a>
@@ -348,7 +504,7 @@ export default async function Home() {
         </div>
         <div className="fine">
           cNEAR is an actively managed certificate issued by Assetize PCC,
-          Jersey. Not a collective investment fund.
+          Jersey. Not a collective investment fund. The value of cNEAR and the income from it can go down as well as up, and past or target returns are not a guarantee.
         </div>
       </footer>
 

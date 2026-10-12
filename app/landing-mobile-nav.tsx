@@ -12,9 +12,11 @@ import { useState } from "react";
  */
 const LINKS: Array<[string, string]> = [
   ["#overview", "OVERVIEW"],
-  ["#strategy", "STRATEGY"],
-  ["#transparency", "TRANSPARENCY"],
-  ["#contact", "CONTACT"],
+  ["#get", "GET cNEAR"],
+  ["#story", "THE IDEA"],
+  ["#strategy", "HOW IT WORKS"],
+  ["#transparency", "SAFEGUARDS"],
+  ["#faq", "FAQ"],
 ];
 
 export function MobileNav() {
@@ -40,11 +42,11 @@ export function MobileNav() {
               {label}
             </a>
           ))}
-          <a className="m-cta" href="/portal" onClick={() => setOpen(false)}>
+          <a className="m-cta" href="#get" onClick={() => setOpen(false)}>
             <span className="ring">
               <span className="dot" />
             </span>
-            Investor portal
+            Get cNEAR
           </a>
         </div>
       )}
