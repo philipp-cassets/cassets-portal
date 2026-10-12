@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Fragment } from "react";
 import { redirect } from "next/navigation";
 import { getOptionalUser, getInvestorIdForAuthUser } from "@/lib/auth";
 import { LandingReveal } from "./landing-reveal";
@@ -134,35 +135,55 @@ const GET_ROUTES = [
   {
     logo: "/landing/logo-near.png",
     brand: "near.com",
+    audience: "retail",
     title: "Get it on near.com",
-    body: "Buy cNEAR from your NEAR account in a few taps. No paperwork on your side.",
+    body: "Buy and sell cNEAR from your NEAR account in a few taps. No paperwork on your side.",
     cta: "Open near.com",
     href: "https://near.com",
   },
   {
     logo: "/landing/logo-rhea.png",
     brand: "Rhea",
+    audience: "retail",
     title: "Trade on Rhea DEX",
-    body: "Swap into cNEAR on-chain whenever you like, straight from your wallet.",
+    body: "Swap in and out of cNEAR on-chain any time, straight from your wallet.",
     cta: "Open Rhea",
     href: "https://app.rhea.finance",
   },
   {
     logo: "/landing/logo-cassets.png",
     brand: "cAssets",
+    audience: "institutional",
     title: "Subscribe directly",
-    body: "Subscribe at published NAV through the issuer. Best for larger tickets.",
+    body: "Subscribe and redeem at published NAV through the issuer, with monthly dealing.",
     cta: "Request subscription",
     href: "mailto:investors@cassets.xyz?subject=cNEAR%20direct%20subscription",
   },
 ];
 
+const AUDIENCES: Record<string, { label: string; note: string }> = {
+  retail: {
+    label: "Retail",
+    note: "Buy and sell any time on the secondary market.",
+  },
+  institutional: {
+    label: "Institutions",
+    note: "Subscribe and redeem directly with the issuer at published NAV.",
+  },
+};
+
 function GetRoutes() {
   return (
     <>
-      {GET_ROUTES.map((r) => (
+      {GET_ROUTES.map((r, i) => (
+        <Fragment key={r.brand}>
+          {(i === 0 || GET_ROUTES[i - 1].audience !== r.audience) && (
+            <div className="get-group">
+              <span className="get-group-l">{AUDIENCES[r.audience].label}</span>
+              <span className="get-group-n">{AUDIENCES[r.audience].note}</span>
+            </div>
+          )}
         <a
-          key={r.brand}
           className="get-row"
           href={r.href}
           {...(r.href.startsWith("http")
@@ -177,6 +198,7 @@ function GetRoutes() {
           </span>
           <span className="get-go">{r.cta} <span aria-hidden="true">→</span></span>
         </a>
+        </Fragment>
       ))}
     </>
   );
@@ -197,9 +219,9 @@ const FAQ = [
   ["Who issues cNEAR?", "cNEAR is issued by Assetize PCC in Jersey. It is an actively managed certificate, not a collective investment fund."],
   ["Where is my NEAR held?", "With an independent custodian, segregated from the manager."],
   ["How do I know what it is worth?", "NAV is published on-chain every month, and certificate holders also receive risk reports and trading records."],
-  ["Can I get out?", "Yes. Redemptions are monthly and priced at the published NAV."],
+  ["Can I get out?", "Yes. Retail holders can sell any time on the secondary market, on near.com or Rhea. Institutions can also redeem directly with the issuer, monthly at the published NAV."],
   ["Who keeps the manager honest?", "An independent oversight committee can hire and fire the manager and holds a veto on material strategy changes."],
-  ["Which route should I pick?", "Most people start on near.com. Use Rhea if you prefer to swap on-chain from your own wallet. Subscribe directly for larger tickets."],
+  ["Which route should I pick?", "Retail: start on near.com, or use Rhea if you prefer to swap on-chain from your own wallet. Institutions: subscribe directly with the issuer, which also gives you NAV-priced dealing for larger tickets."],
 ];
 
 export default async function Home() {
@@ -302,7 +324,7 @@ export default async function Home() {
           <div className="getcard" id="get-hero">
             <div className="get-head">
               <span className="get-eyebrow">How to get cNEAR</span>
-              <span className="get-sub">Three ways in</span>
+              <span className="get-sub">Retail and institutional routes</span>
             </div>
             <GetRoutes />
           </div>
@@ -322,7 +344,7 @@ export default async function Home() {
 
       <section className="section get-mobile" id="get">
         <div className="sec-eyebrow">Get cNEAR</div>
-        <h2 className="sec-h">Three ways in. Pick the one that fits.</h2>
+        <h2 className="sec-h">Two ways in. Pick the one that fits.</h2>
         <div className="get-list">
           <GetRoutes />
         </div>
@@ -370,8 +392,9 @@ export default async function Home() {
             <div className="tr-num">04</div>
             <h3 className="tr-t">You can see it and exit it</h3>
             <p className="tr-b">
-              NAV is published on-chain every month, and you can redeem
-              monthly at that published NAV.
+              Redeem any time on the secondary market. NAV is published
+              on-chain every month, and institutions can also redeem directly
+              at that published NAV.
             </p>
           </div>
         </div>
@@ -404,9 +427,12 @@ export default async function Home() {
             </div>
           </div>
           <div className="stat">
-            <div className="stat-n">Monthly</div>
-            <div className="stat-l">NAV-priced redemptions</div>
-            <div className="stat-d">subscribe and redeem at published NAV</div>
+            <div className="stat-n">Any time</div>
+            <div className="stat-l">Secondary-market liquidity</div>
+            <div className="stat-d">
+              retail buys and sells on near.com or Rhea; institutions subscribe
+              and redeem monthly at published NAV
+            </div>
           </div>
         </div>
       </section>

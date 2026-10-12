@@ -535,3 +535,13 @@ body { background: #F2F2F0; }
 .landing .partner img { max-width: 100%; max-height: 44px; width: auto; filter: brightness(0) opacity(0.62); }
 .landing .partner-name { font-weight: 700; font-size: 22px; letter-spacing: -0.4px; color: rgba(0,0,0,0.58); }
 @media (max-width: 760px) { .landing .partner-row { grid-template-columns: repeat(2, 1fr); } .landing .partner { height: 92px; } }
+
+/* retail / institutional grouping inside the route list */
+.landing .get-group {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+  padding: 14px 4px 8px;
+}
+.landing .get-group-l { font-weight: 600; font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent); }
+.landing .get-group-n { font-weight: 500; font-size: 13px; color: rgba(0,0,0,0.45); text-align: right; }
+.landing .get-group + .get-row { border-top: none; }
+@media (max-width: 760px) { .landing .get-group { flex-direction: column; gap: 2px; } .landing .get-group-n { text-align: left; } }
