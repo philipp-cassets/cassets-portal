@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@stackframe/stack": "^2.8.108",
-    "next": "^15.5.19",
+    "next": "^15.5.28",
     "pg": "^8.16.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
